@@ -1,3 +1,155 @@
+let canvas;
+let levelText;
+let context;
+let level = 1;
+let width = 6;
+let height = 3;
+let appTime = 0;
+let currentApp = null;
+
+let minFrameTime = 12;
+
+window.addEventListener('load', function(event) {
+  setup(1);
+
+  let app = new Game();
+  launchApplication(app);
+}, false);
+
+class Game
+{
+  constructor()
+  {
+    this.init();
+  }
+
+  init()
+  {
+    this.maze = [];
+    this.walls = [];
+    this.player = [];
+    this.goal = [];
+
+    if (getRandomInt(2) === 0)
+    {
+      this.player = [getRandomInt(width), 0];
+    } else {
+      this.player = [0, getRandomInt(height)];
+    }
+    this.maze.push(this.player.slice());
+    this.goal = this.player.slice();
+    this.addNeighbours(this.player);
+  }
+
+  neighboursInMaze(cell)
+  {
+    let res = 0;
+    if (this.maze.containsArray([cell[0] - 1, cell[1]]) === true)
+    {
+      res = res + 1;
+    }
+    if (this.maze.containsArray([cell[0] + 1, cell[1]]) === true)
+    {
+      res = res + 1;
+    }
+    if (this.maze.containsArray([cell[0], cell[1] - 1]) === true)
+    {
+      res = res + 1;
+    }
+    if (this.maze.containsArray([cell[0], cell[1] + 1]) === true)
+    {
+      res = res + 1;
+    }
+    return res;
+  }
+
+  addNeighbours(cell)
+  {
+    if (cell[0] > 0)
+    {
+      if (this.maze.containsArray([cell[0] - 1, cell[1]]) === false)
+      {
+        this.walls.push([cell[0] - 1, cell[1]]);
+      }
+    }
+    if (cell[0] < width - 1)
+    {
+      if (this.maze.containsArray([cell[0] + 1, cell[1]]) === false)
+      {
+        this.walls.push([cell[0] + 1, cell[1]]);
+      }
+    }
+    if (cell[1] > 0)
+    {
+      if (this.maze.containsArray([cell[0], cell[1] - 1]) === false)
+      {
+        this.walls.push([cell[0], cell[1] - 1]);
+      }
+    }
+    if (cell[1] < height - 1)
+    {
+      if (this.maze.containsArray([cell[0], cell[1] + 1]) === false)
+      {
+        this.walls.push([cell[0], cell[1] + 1]);
+      }
+    }
+  }
+
+  update()
+  {
+    if (this.walls.length > 0)
+    {
+      let cell_index = getRandomInt(this.walls.length);
+      if ((this.maze.containsArray(this.walls[cell_index]) === false) &&
+        (this.neighboursInMaze(this.walls[cell_index]) < 2))
+      {
+        this.maze.push(this.walls[cell_index]);
+        this.goal = this.walls[cell_index];
+        this.addNeighbours(this.walls[cell_index]);
+      }
+      this.walls.splice(cell_index, 1);
+    }
+  }
+
+  draw()
+  {
+    context.fillStyle = "white";
+    this.maze.forEach(function(element) {
+      context.fillRect(element[0] * 10, element[1] * 10, 10, 10);
+    });
+    context.fillStyle = "green";
+    context.fillRect(this.goal[0] * 10, this.goal[1] * 10, 10, 10);
+    context.fillStyle = "red";
+    context.fillRect(this.player[0] * 10, this.player[1] * 10, 10, 10);
+  }
+
+  erasePlayer()
+  {
+    context.fillStyle = "white";
+    context.fillRect(this.player[0] * 10, this.player[1] * 10, 10, 10);
+  }
+
+  displayPlayer()
+  {
+    context.fillStyle = "red";
+    context.fillRect(this.player[0] * 10, this.player[1] * 10, 10, 10);
+    if ((this.player[0] === this.goal[0]) && (this.player[1] === this.goal[1]))
+    {
+      canvas.remove();
+      levelText.remove();
+      level += 1;
+      width += 2;
+      height += 1;
+      setup();
+      this.init();
+    }
+  }
+}
+
+// ------------------------------------
+// Utils
+// ------------------------------------
+
 /* https://stackoverflow.com/questions/6315180/javascript-search-array-of-arrays/6315203#6315203 */
 Array.prototype.containsArray = function(val)
 {
@@ -14,163 +166,96 @@ function getRandomInt(max)
   return Math.floor(Math.random() * max);
 }
 
-function addNeighbours(cell, walls, maze, max_width, max_height)
+// ------------------------------------
+// Animation handling
+// ------------------------------------
+
+function animate(now)
 {
-  if (cell[0] > 0)
+  requestAnimationFrame(animate);
+
+  let dt = now - animate._lastTime;
+  if (dt < minFrameTime) return;
+  animate._lastTime = now;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (currentApp)
   {
-    if (maze.containsArray([cell[0] - 1, cell[1]]) === false)
-    {
-      walls.push([cell[0] - 1, cell[1]]);
-    }
+    currentApp.update();
+    currentApp.draw();
   }
-  if (cell[0] < max_width - 1)
-  {
-    if (maze.containsArray([cell[0] + 1, cell[1]]) === false)
-    {
-      walls.push([cell[0] + 1, cell[1]]);
-    }
-  }
-  if (cell[1] > 0)
-  {
-    if (maze.containsArray([cell[0], cell[1] - 1]) === false)
-    {
-      walls.push([cell[0], cell[1] - 1]);
-    }
-  }
-  if (cell[1] < max_height - 1)
-  {
-    if (maze.containsArray([cell[0], cell[1] + 1]) === false)
-    {
-      walls.push([cell[0], cell[1] + 1]);
-    }
+  appTime += 1;
+}
+
+function launchAnimation() {
+  if (launchAnimation.launched) return;
+  launchAnimation.launched = true;
+  requestAnimationFrame(_launchAnimation);
+
+  function _launchAnimation(now) {
+    animate._lastTime = now;
+    requestAnimationFrame(animate);
   }
 }
 
-function neighboursInMaze(cell, list_of_cells)
-{
-  let res = 0;
-  if (list_of_cells.containsArray([cell[0] - 1, cell[1]]) === true)
-  {
-    res = res + 1;
-  }
-  if (list_of_cells.containsArray([cell[0] + 1, cell[1]]) === true)
-  {
-    res = res + 1;
-  }
-  if (list_of_cells.containsArray([cell[0], cell[1] - 1]) === true)
-  {
-    res = res + 1;
-  }
-  if (list_of_cells.containsArray([cell[0], cell[1] + 1]) === true)
-  {
-    res = res + 1;
-  }
-  return res;
+function launchApplication(application) {
+  currentApp = application;
+  launchAnimation();
 }
 
-function erasePlayer(player, context)
+// ------------------------------------
+// Setup
+// ------------------------------------
+
+function setup()
 {
-  context.fillStyle = "white";
-  context.fillRect(player[0] * 20, player[1] * 20, 20, 20);
-}
-
-function displayPlayer(player, goal, canva, context)
-{
-  context.fillStyle = "red";
-  context.fillRect(player[0] * 20, player[1] * 20, 20, 20);
-  if ((player[0] === goal[0]) && (player[1] === goal[1]))
-  {
-    canva.remove();
-    let h1 = document.createElement('H1');
-    h1.innerHTML = "You Win";
-    document.body.appendChild(h1);
-  }
-}
-
-function initMaze(canva, context, width, height)
-{
-  canva.width = width * 20;
-  canva.height = height * 20;
-
-  let starting_cell;
-  if (getRandomInt(2) === 0)
-  {
-    starting_cell = [getRandomInt(width), 0];
-  } else {
-    starting_cell = [0, getRandomInt(height)];
-  }
-
-  let maze = [];
-  maze.push(starting_cell);
-
-  let walls = [];
-  addNeighbours(starting_cell, walls, maze, width, height);
-
-  let cell_index;
-  while (walls.length > 0)
-  {
-    cell_index = getRandomInt(walls.length);
-    if ((maze.containsArray(walls[cell_index]) === false) && (neighboursInMaze(walls[cell_index], maze) < 2))
-    {
-      maze.push(walls[cell_index]);
-      addNeighbours(walls[cell_index], walls, maze, width, height);
-    }
-    walls.splice(cell_index, 1);
-  }
-
-  return maze;
-}
-
-function playGame()
-{
-  let canva = document.getElementById("mazecanva");
-  let context = canva.getContext("2d");
-  let width = getRandomInt(40) + 10;
-  let height = getRandomInt(15) + 10;
-
-  let maze = initMaze(canva, context, width, height);
-  let player = [maze[0][0], maze[0][1]];
-  let goal = maze[maze.length - 1];
-
-  context.fillStyle = "white";
-  maze.forEach(element => context.fillRect(element[0] * 20, element[1] * 20, 20, 20));
-  context.fillStyle = "green";
-  context.fillRect(goal[0] * 20, goal[1] * 20, 20, 20);
-  context.fillStyle = "red";
-  context.fillRect(player[0] * 20, player[1] * 20, 20, 20);
-
-  document.addEventListener('keydown', function(event) {
-    if (event.keyCode === 37)
-    {
-      if ((maze.containsArray([player[0] - 1, player[1]]) === true) && (player[0] > 0))
-      {
-        erasePlayer(player, context);
-        player[0] = player[0] - 1;
-        displayPlayer(player, goal, canva, context);
-      }
-    } else if (event.keyCode === 38) {
-      if ((maze.containsArray([player[0], player[1] - 1]) === true) && (player[1] > 0))
-      {
-        erasePlayer(player, context);
-        player[1] = player[1] - 1;
-        displayPlayer(player, goal, canva, context);
-      }
-    } else if (event.keyCode === 39) {
-      if ((maze.containsArray([player[0] + 1, player[1]]) === true) && (player[0] < width - 1))
-      {
-        erasePlayer(player, context);
-        player[0] = player[0] + 1;
-        displayPlayer(player, goal, canva, context);
-      }
-    } else if(event.keyCode === 40) {
-      if ((maze.containsArray([player[0], player[1] + 1]) === true) && (player[1] < height - 1))
-      {
-        erasePlayer(player, context);
-        player[1] = player[1] + 1;
-        displayPlayer(player, goal, canva, context);
-      }
-    }
+  levelText = document.createElement('H3');
+  levelText.innerHTML = "LEVEL ".concat(level.toString());
+  document.body.appendChild(levelText);
+  canvas = document.createElement('canvas');
+  canvas.width = width * 10;
+  canvas.height = height * 10;
+  canvas.style.border = "1px solid black";
+  canvas.color = "black";
+  document.body.appendChild(canvas);
+  context = canvas.getContext('2d', {
+    alpha: false
   });
 }
 
-window.onload = playGame;
+window.addEventListener('keydown', function(event) {
+  if (event.keyCode === 37)
+  {
+    if ((currentApp.maze.containsArray([currentApp.player[0] - 1,
+      currentApp.player[1]]) === true) && (currentApp.player[0] > 0))
+    {
+      currentApp.erasePlayer();
+      currentApp.player[0] = currentApp.player[0] - 1;
+      currentApp.displayPlayer();
+    }
+  } else if (event.keyCode === 38) {
+    if ((currentApp.maze.containsArray([currentApp.player[0],
+      currentApp.player[1] - 1]) === true) && (currentApp.player[1] > 0))
+    {
+      currentApp.erasePlayer();
+      currentApp.player[1] = currentApp.player[1] - 1;
+      currentApp.displayPlayer();
+    }
+  } else if (event.keyCode === 39) {
+    if ((currentApp.maze.containsArray([currentApp.player[0] + 1,
+      currentApp.player[1]]) === true) && (currentApp.player[0] < width - 1))
+    {
+      currentApp.erasePlayer();
+      currentApp.player[0] = currentApp.player[0] + 1;
+      currentApp.displayPlayer();
+    }
+  } else if(event.keyCode === 40) {
+    if ((currentApp.maze.containsArray([currentApp.player[0],
+      currentApp.player[1] + 1]) === true) && (currentApp.player[1] < height - 1))
+    {
+      currentApp.erasePlayer();
+      currentApp.player[1] = currentApp.player[1] + 1;
+      currentApp.displayPlayer();
+    }
+  }
+});
