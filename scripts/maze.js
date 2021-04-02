@@ -1,20 +1,22 @@
+// ------------------------------------
+// Useful variables & constants
+// ------------------------------------
+
 let canvas;
 let levelText;
 let context;
+
 let level = 1;
 let width = 6;
 let height = 3;
-let appTime = 0;
 let currentApp = null;
 
-let minFrameTime = 12;
+const minFrameTime = 12;
+const squareSize = 10;
 
-window.addEventListener('load', function(event) {
-  setup(1);
-
-  let app = new Game();
-  launchApplication(app);
-}, false);
+// ------------------------------------
+// Game class
+// ------------------------------------
 
 class Game
 {
@@ -28,14 +30,19 @@ class Game
     this.maze = [];
     this.walls = [];
     this.player = [];
-    this.goal = [];
 
-    if (getRandomInt(2) === 0)
+    let random_side = getRandomInt(4);
+    if (random_side === 0)
     {
       this.player = [getRandomInt(width), 0];
-    } else {
+    } else if (random_side === 1) {
       this.player = [0, getRandomInt(height)];
+    } else if (random_side === 1) {
+      this.player = [getRandomInt(width), height - 1];
+    } else {
+      this.player = [width - 1, getRandomInt(height)];
     }
+
     this.maze.push(this.player.slice());
     this.goal = this.player.slice();
     this.addNeighbours(this.player);
@@ -114,25 +121,28 @@ class Game
   draw()
   {
     context.fillStyle = "white";
-    this.maze.forEach(function(element) {
-      context.fillRect(element[0] * 10, element[1] * 10, 10, 10);
-    });
+    context.fillRect(this.maze[this.maze.length - 2][0] * squareSize,
+      this.maze[this.maze.length - 2][1] * squareSize, squareSize, squareSize);
     context.fillStyle = "green";
-    context.fillRect(this.goal[0] * 10, this.goal[1] * 10, 10, 10);
+    context.fillRect(this.goal[0] * squareSize, this.goal[1] * squareSize,
+      squareSize, squareSize);
     context.fillStyle = "red";
-    context.fillRect(this.player[0] * 10, this.player[1] * 10, 10, 10);
+    context.fillRect(this.player[0] * squareSize, this.player[1] * squareSize,
+      squareSize, squareSize);
   }
 
   erasePlayer()
   {
     context.fillStyle = "white";
-    context.fillRect(this.player[0] * 10, this.player[1] * 10, 10, 10);
+    context.fillRect(this.player[0] * squareSize, this.player[1] * squareSize,
+      squareSize, squareSize);
   }
 
   displayPlayer()
   {
     context.fillStyle = "red";
-    context.fillRect(this.player[0] * 10, this.player[1] * 10, 10, 10);
+    context.fillRect(this.player[0] * squareSize, this.player[1] * squareSize,
+      squareSize, squareSize);
     if ((this.player[0] === this.goal[0]) && (this.player[1] === this.goal[1]))
     {
       canvas.remove();
@@ -154,7 +164,7 @@ class Game
 Array.prototype.containsArray = function(val)
 {
   let hash = {};
-  for(let i=0; i<this.length; i++)
+  for(let i = 0; i < this.length; i++)
   {
     hash[this[i]] = i;
   }
@@ -169,6 +179,10 @@ function getRandomInt(max)
 // ------------------------------------
 // Animation handling
 // ------------------------------------
+// https://codepen.io/gamealchemist/pen/VeawyL
+// https://codepen.io/gamealchemist/post/animationcanvas1
+// https://stackoverflow.com/questions/37476437/how-to-render-html5-canvas-within-a-loop
+// ------------------------------------
 
 function animate(now)
 {
@@ -178,13 +192,11 @@ function animate(now)
   if (dt < minFrameTime) return;
   animate._lastTime = now;
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
   if (currentApp)
   {
     currentApp.update();
     currentApp.draw();
   }
-  appTime += 1;
 }
 
 function launchAnimation() {
@@ -213,8 +225,8 @@ function setup()
   levelText.innerHTML = "LEVEL ".concat(level.toString());
   document.body.appendChild(levelText);
   canvas = document.createElement('canvas');
-  canvas.width = width * 10;
-  canvas.height = height * 10;
+  canvas.width = width * squareSize;
+  canvas.height = height * squareSize;
   canvas.style.border = "1px solid black";
   canvas.color = "black";
   document.body.appendChild(canvas);
@@ -223,39 +235,54 @@ function setup()
   });
 }
 
+window.addEventListener('load', function(event) {
+  setup();
+
+  let app = new Game();
+  launchApplication(app);
+}, false);
+
 window.addEventListener('keydown', function(event) {
-  if (event.keyCode === 37)
+  switch (event.key)
   {
-    if ((currentApp.maze.containsArray([currentApp.player[0] - 1,
-      currentApp.player[1]]) === true) && (currentApp.player[0] > 0))
-    {
-      currentApp.erasePlayer();
-      currentApp.player[0] = currentApp.player[0] - 1;
-      currentApp.displayPlayer();
-    }
-  } else if (event.keyCode === 38) {
-    if ((currentApp.maze.containsArray([currentApp.player[0],
-      currentApp.player[1] - 1]) === true) && (currentApp.player[1] > 0))
-    {
-      currentApp.erasePlayer();
-      currentApp.player[1] = currentApp.player[1] - 1;
-      currentApp.displayPlayer();
-    }
-  } else if (event.keyCode === 39) {
-    if ((currentApp.maze.containsArray([currentApp.player[0] + 1,
-      currentApp.player[1]]) === true) && (currentApp.player[0] < width - 1))
-    {
-      currentApp.erasePlayer();
-      currentApp.player[0] = currentApp.player[0] + 1;
-      currentApp.displayPlayer();
-    }
-  } else if(event.keyCode === 40) {
-    if ((currentApp.maze.containsArray([currentApp.player[0],
-      currentApp.player[1] + 1]) === true) && (currentApp.player[1] < height - 1))
-    {
-      currentApp.erasePlayer();
-      currentApp.player[1] = currentApp.player[1] + 1;
-      currentApp.displayPlayer();
-    }
+    case 'ArrowLeft':
+      if ((currentApp.maze.containsArray([currentApp.player[0] - 1,
+        currentApp.player[1]]) === true) && (currentApp.player[0] > 0))
+      {
+        currentApp.erasePlayer();
+        currentApp.player[0] = currentApp.player[0] - 1;
+        currentApp.displayPlayer();
+      }
+      break;
+    case 'ArrowUp':
+      if ((currentApp.maze.containsArray([currentApp.player[0],
+        currentApp.player[1] - 1]) === true) && (currentApp.player[1] > 0))
+      {
+        currentApp.erasePlayer();
+        currentApp.player[1] = currentApp.player[1] - 1;
+        currentApp.displayPlayer();
+      }
+      break;
+    case 'ArrowRight':
+      if ((currentApp.maze.containsArray([currentApp.player[0] + 1,
+        currentApp.player[1]]) === true) && (currentApp.player[0] < width - 1))
+      {
+        currentApp.erasePlayer();
+        currentApp.player[0] = currentApp.player[0] + 1;
+        currentApp.displayPlayer();
+      }
+      break;
+    case 'ArrowDown':
+      if ((currentApp.maze.containsArray([currentApp.player[0],
+        currentApp.player[1] + 1]) === true) &&
+        (currentApp.player[1] < height - 1))
+      {
+        currentApp.erasePlayer();
+        currentApp.player[1] = currentApp.player[1] + 1;
+        currentApp.displayPlayer();
+      }
+      break;
+    default:
+      return;
   }
 });
