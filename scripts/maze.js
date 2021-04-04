@@ -30,6 +30,8 @@ class Game
     this.maze = [];
     this.walls = [];
     this.player = [];
+    this.solution = [];
+    this.tree = {};
 
     let random_side = getRandomInt(4);
     if (random_side === 0)
@@ -46,6 +48,7 @@ class Game
     this.maze.push(this.player.slice());
     this.goal = this.player.slice();
     this.addNeighbours(this.player);
+    this.tree[this.player.slice()] = this.player.slice();
   }
 
   neighboursInMaze(cell)
@@ -102,6 +105,20 @@ class Game
     }
   }
 
+  searchParent(cell)
+  {
+    if (this.maze.containsArray([cell[0] - 1, cell[1]]) === true)
+    {
+      return [cell[0] - 1, cell[1]];
+    } else if (this.maze.containsArray([cell[0] + 1, cell[1]]) === true) {
+      return [cell[0] + 1, cell[1]];
+    } else if (this.maze.containsArray([cell[0], cell[1] - 1]) === true) {
+      return [cell[0], cell[1] - 1];
+    } else if (this.maze.containsArray([cell[0], cell[1] + 1]) === true) {
+      return [cell[0], cell[1] + 1];
+    }
+  }
+
   update()
   {
     if (this.walls.length > 0)
@@ -113,6 +130,8 @@ class Game
         this.maze.push(this.walls[cell_index]);
         this.goal = this.walls[cell_index];
         this.addNeighbours(this.walls[cell_index]);
+        this.tree[this.walls[cell_index]] =
+          this.searchParent(this.walls[cell_index]);
       }
       this.walls.splice(cell_index, 1);
     }
@@ -121,8 +140,15 @@ class Game
   draw()
   {
     context.fillStyle = "white";
-    context.fillRect(this.maze[this.maze.length - 2][0] * squareSize,
-      this.maze[this.maze.length - 2][1] * squareSize, squareSize, squareSize);
+    this.maze.forEach(function(cell) {
+      context.fillRect(cell[0] * squareSize, cell[1] * squareSize,
+        squareSize, squareSize);
+    });
+    context.fillStyle = "pink";
+    this.solution.forEach(function(cell) {
+      context.fillRect(cell[0] * squareSize, cell[1] * squareSize,
+        squareSize, squareSize);
+    });
     context.fillStyle = "green";
     context.fillRect(this.goal[0] * squareSize, this.goal[1] * squareSize,
       squareSize, squareSize);
@@ -131,18 +157,8 @@ class Game
       squareSize, squareSize);
   }
 
-  erasePlayer()
+  checkMaze()
   {
-    context.fillStyle = "white";
-    context.fillRect(this.player[0] * squareSize, this.player[1] * squareSize,
-      squareSize, squareSize);
-  }
-
-  displayPlayer()
-  {
-    context.fillStyle = "red";
-    context.fillRect(this.player[0] * squareSize, this.player[1] * squareSize,
-      squareSize, squareSize);
     if ((this.player[0] === this.goal[0]) && (this.player[1] === this.goal[1]))
     {
       canvas.remove();
@@ -192,6 +208,8 @@ function animate(now)
   if (dt < minFrameTime) return;
   animate._lastTime = now;
 
+  context.fillStyle = "black";
+  context.fillRect(0, 0, canvas.width, canvas.height);
   if (currentApp)
   {
     currentApp.update();
@@ -210,8 +228,8 @@ function launchAnimation() {
   }
 }
 
-function launchApplication(application) {
-  currentApp = application;
+function launchApp(app) {
+  currentApp = app;
   launchAnimation();
 }
 
@@ -227,7 +245,7 @@ function setup()
   canvas = document.createElement('canvas');
   canvas.width = width * squareSize;
   canvas.height = height * squareSize;
-  canvas.style.border = "1px solid black";
+  canvas.style.border = "2px solid black";
   canvas.color = "black";
   document.body.appendChild(canvas);
   context = canvas.getContext('2d', {
@@ -239,7 +257,7 @@ window.addEventListener('load', function(event) {
   setup();
 
   let app = new Game();
-  launchApplication(app);
+  launchApp(app);
 }, false);
 
 window.addEventListener('keydown', function(event) {
@@ -249,27 +267,24 @@ window.addEventListener('keydown', function(event) {
       if ((currentApp.maze.containsArray([currentApp.player[0] - 1,
         currentApp.player[1]]) === true) && (currentApp.player[0] > 0))
       {
-        currentApp.erasePlayer();
         currentApp.player[0] = currentApp.player[0] - 1;
-        currentApp.displayPlayer();
+        currentApp.checkMaze();
       }
       break;
     case 'ArrowUp':
       if ((currentApp.maze.containsArray([currentApp.player[0],
         currentApp.player[1] - 1]) === true) && (currentApp.player[1] > 0))
       {
-        currentApp.erasePlayer();
         currentApp.player[1] = currentApp.player[1] - 1;
-        currentApp.displayPlayer();
+        currentApp.checkMaze();
       }
       break;
     case 'ArrowRight':
       if ((currentApp.maze.containsArray([currentApp.player[0] + 1,
         currentApp.player[1]]) === true) && (currentApp.player[0] < width - 1))
       {
-        currentApp.erasePlayer();
         currentApp.player[0] = currentApp.player[0] + 1;
-        currentApp.displayPlayer();
+        currentApp.checkMaze();
       }
       break;
     case 'ArrowDown':
@@ -277,9 +292,43 @@ window.addEventListener('keydown', function(event) {
         currentApp.player[1] + 1]) === true) &&
         (currentApp.player[1] < height - 1))
       {
-        currentApp.erasePlayer();
         currentApp.player[1] = currentApp.player[1] + 1;
-        currentApp.displayPlayer();
+        currentApp.checkMaze();
+      }
+      break;
+    case 's':
+    case 'S':
+      if (currentApp.walls.length == 0)
+      {
+        currentApp.solution = [];
+        let goalRoot = [];
+        let playerRoot = [];
+        let tmp = currentApp.goal;
+        while ((currentApp.tree[tmp][0] !== tmp[0]) ||
+          (currentApp.tree[tmp][1] !== tmp[1]))
+        {
+          tmp = currentApp.tree[tmp];
+          goalRoot.push(tmp);
+        }
+        tmp = currentApp.player.slice();
+        playerRoot.push(tmp);
+        while ((currentApp.tree[tmp][0] !== tmp[0]) ||
+          (currentApp.tree[tmp][1] !== tmp[1]))
+        {
+          tmp = currentApp.tree[tmp];
+          playerRoot.push(tmp);
+        }
+        let sameRoot = goalRoot.filter(cell =>
+          playerRoot.containsArray(cell) === true);
+        goalRoot = goalRoot.filter(cell =>
+          sameRoot.containsArray(cell) === false);
+        playerRoot = playerRoot.filter(cell =>
+          sameRoot.containsArray(cell) === false);
+        currentApp.solution = goalRoot.concat(playerRoot);
+        if (sameRoot.length > 0)
+        {
+          currentApp.solution.push(sameRoot[0]);
+        }
       }
       break;
     default:
