@@ -15,6 +15,19 @@ const minFrameTime = 12;
 const squareSize = 10;
 
 // ------------------------------------
+// Cell class
+// ------------------------------------
+
+class Cell
+{
+  constructor(x, y)
+  {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+// ------------------------------------
 // Game class
 // ------------------------------------
 
@@ -29,44 +42,47 @@ class Game
   {
     this.maze = [];
     this.walls = [];
-    this.player = [];
+    this.player;
     this.solution = [];
-    this.tree = {};
 
-    let random_side = getRandomInt(4);
-    if (random_side === 0)
+    let randomSide = getRandomInt(4);
+    if (randomSide === 0)
     {
-      this.player = [getRandomInt(width), 0];
-    } else if (random_side === 1) {
-      this.player = [0, getRandomInt(height)];
-    } else if (random_side === 1) {
-      this.player = [getRandomInt(width), height - 1];
+      this.player = new Cell(getRandomInt(width), 0);
+    } else if (randomSide === 1) {
+      this.player = new Cell(0, getRandomInt(height));
+    } else if (randomSide === 2) {
+      this.player = new Cell(getRandomInt(width), height - 1);
     } else {
-      this.player = [width - 1, getRandomInt(height)];
+      this.player = new Cell(width - 1, getRandomInt(height));
     }
+    this.player.parents = this.player;
 
-    this.maze.push(this.player.slice());
-    this.goal = this.player.slice();
+    this.maze.push(_.cloneDeep(this.player));
+    this.goal = _.cloneDeep(this.player);
     this.addNeighbours(this.player);
-    this.tree[this.player.slice()] = this.player.slice();
   }
 
   neighboursInMaze(cell)
   {
     let res = 0;
-    if (this.maze.containsArray([cell[0] - 1, cell[1]]) === true)
+    if (this.maze.some(element =>
+      (element.x === cell.x - 1) && (element.y === cell.y)))
     {
       res = res + 1;
     }
-    if (this.maze.containsArray([cell[0] + 1, cell[1]]) === true)
+    if (this.maze.some(element =>
+      (element.x === cell.x + 1) && (element.y === cell.y)))
     {
       res = res + 1;
     }
-    if (this.maze.containsArray([cell[0], cell[1] - 1]) === true)
+    if (this.maze.some(element =>
+      (element.x === cell.x) && (element.y === cell.y - 1)))
     {
       res = res + 1;
     }
-    if (this.maze.containsArray([cell[0], cell[1] + 1]) === true)
+    if (this.maze.some(element =>
+      (element.x === cell.x) && (element.y === cell.y + 1)))
     {
       res = res + 1;
     }
@@ -75,47 +91,64 @@ class Game
 
   addNeighbours(cell)
   {
-    if (cell[0] > 0)
+    let neighbour;
+    if (cell.x > 0)
     {
-      if (this.maze.containsArray([cell[0] - 1, cell[1]]) === false)
+      neighbour = new Cell(cell.x - 1, cell.y);
+      if (!this.maze.some(element =>
+        (element.x === neighbour.x) && (element.y === neighbour.y)))
       {
-        this.walls.push([cell[0] - 1, cell[1]]);
+        this.walls.push(neighbour);
       }
     }
-    if (cell[0] < width - 1)
+    if (cell.x < width - 1)
     {
-      if (this.maze.containsArray([cell[0] + 1, cell[1]]) === false)
+      neighbour = new Cell(cell.x + 1, cell.y);
+      if (!this.maze.some(element =>
+        (element.x === neighbour.x) && (element.y === neighbour.y)))
       {
-        this.walls.push([cell[0] + 1, cell[1]]);
+        this.walls.push(neighbour);
       }
     }
-    if (cell[1] > 0)
+    if (cell.y > 0)
     {
-      if (this.maze.containsArray([cell[0], cell[1] - 1]) === false)
+      neighbour = new Cell(cell.x, cell.y - 1);
+      if (!this.maze.some(element =>
+        (element.x === neighbour.x) && (element.y === neighbour.y)))
       {
-        this.walls.push([cell[0], cell[1] - 1]);
+        this.walls.push(neighbour);
       }
     }
-    if (cell[1] < height - 1)
+    if (cell.y < height - 1)
     {
-      if (this.maze.containsArray([cell[0], cell[1] + 1]) === false)
+      neighbour = new Cell(cell.x, cell.y + 1);
+      if (!this.maze.some(element =>
+        (element.x === neighbour.x) && (element.y === neighbour.y)))
       {
-        this.walls.push([cell[0], cell[1] + 1]);
+        this.walls.push(neighbour);
       }
     }
   }
 
-  searchParent(cell)
+  searchParents(cell)
   {
-    if (this.maze.containsArray([cell[0] - 1, cell[1]]) === true)
+    if (this.maze.some(element =>
+      (element.x === cell.x - 1) && (element.y === cell.y)))
     {
-      return [cell[0] - 1, cell[1]];
-    } else if (this.maze.containsArray([cell[0] + 1, cell[1]]) === true) {
-      return [cell[0] + 1, cell[1]];
-    } else if (this.maze.containsArray([cell[0], cell[1] - 1]) === true) {
-      return [cell[0], cell[1] - 1];
-    } else if (this.maze.containsArray([cell[0], cell[1] + 1]) === true) {
-      return [cell[0], cell[1] + 1];
+      cell.parents = this.maze.find(element =>
+        (element.x === cell.x - 1) && (element.y === cell.y));
+    } else if (this.maze.some(element =>
+      (element.x === cell.x + 1) && (element.y === cell.y))) {
+        cell.parents = this.maze.find(element =>
+          (element.x === cell.x + 1) && (element.y === cell.y));
+    } else if (this.maze.some(element =>
+      (element.x === cell.x) && (element.y === cell.y - 1))) {
+        cell.parents = this.maze.find(element =>
+          (element.x === cell.x) && (element.y === cell.y - 1));
+    } else if (this.maze.some(element =>
+      (element.x === cell.x) && (element.y === cell.y + 1))) {
+        cell.parents = this.maze.find(element =>
+          (element.x === cell.x) && (element.y === cell.y + 1));
     }
   }
 
@@ -124,14 +157,15 @@ class Game
     if (this.walls.length > 0)
     {
       let cell_index = getRandomInt(this.walls.length);
-      if ((this.maze.containsArray(this.walls[cell_index]) === false) &&
+      if (!this.maze.some(element =>
+        (element.x === this.walls[cell_index].x) &&
+        (element.y === this.walls[cell_index].y)) &&
         (this.neighboursInMaze(this.walls[cell_index]) < 2))
       {
+        this.searchParents(this.walls[cell_index]);
         this.maze.push(this.walls[cell_index]);
         this.goal = this.walls[cell_index];
         this.addNeighbours(this.walls[cell_index]);
-        this.tree[this.walls[cell_index]] =
-          this.searchParent(this.walls[cell_index]);
       }
       this.walls.splice(cell_index, 1);
     }
@@ -141,25 +175,25 @@ class Game
   {
     context.fillStyle = "white";
     this.maze.forEach(function(cell) {
-      context.fillRect(cell[0] * squareSize, cell[1] * squareSize,
+      context.fillRect(cell.x * squareSize, cell.y * squareSize,
         squareSize, squareSize);
     });
     context.fillStyle = "pink";
     this.solution.forEach(function(cell) {
-      context.fillRect(cell[0] * squareSize, cell[1] * squareSize,
+      context.fillRect(cell.x * squareSize, cell.y * squareSize,
         squareSize, squareSize);
     });
     context.fillStyle = "green";
-    context.fillRect(this.goal[0] * squareSize, this.goal[1] * squareSize,
+    context.fillRect(this.goal.x * squareSize, this.goal.y * squareSize,
       squareSize, squareSize);
     context.fillStyle = "red";
-    context.fillRect(this.player[0] * squareSize, this.player[1] * squareSize,
+    context.fillRect(this.player.x * squareSize, this.player.y * squareSize,
       squareSize, squareSize);
   }
 
   checkMaze()
   {
-    if ((this.player[0] === this.goal[0]) && (this.player[1] === this.goal[1]))
+    if ((this.player.x === this.goal.x) && (this.player.y === this.goal.y))
     {
       canvas.remove();
       levelText.remove();
@@ -175,17 +209,6 @@ class Game
 // ------------------------------------
 // Utils
 // ------------------------------------
-
-/* https://stackoverflow.com/questions/6315180/javascript-search-array-of-arrays/6315203#6315203 */
-Array.prototype.containsArray = function(val)
-{
-  let hash = {};
-  for(let i = 0; i < this.length; i++)
-  {
-    hash[this[i]] = i;
-  }
-  return hash.hasOwnProperty(val);
-}
 
 function getRandomInt(max)
 {
@@ -264,66 +287,77 @@ window.addEventListener('keydown', function(event) {
   switch (event.key)
   {
     case 'ArrowLeft':
-      if ((currentApp.maze.containsArray([currentApp.player[0] - 1,
-        currentApp.player[1]]) === true) && (currentApp.player[0] > 0))
+      if ((currentApp.maze.some(element =>
+        (element.x === currentApp.player.x - 1) &&
+        (element.y === currentApp.player.y))) && (currentApp.player.x > 0))
       {
-        currentApp.player[0] = currentApp.player[0] - 1;
+        currentApp.player = currentApp.maze.find(element =>
+          (element.x === currentApp.player.x - 1) &&
+          (element.y === currentApp.player.y));
         currentApp.checkMaze();
       }
       break;
     case 'ArrowUp':
-      if ((currentApp.maze.containsArray([currentApp.player[0],
-        currentApp.player[1] - 1]) === true) && (currentApp.player[1] > 0))
+      if ((currentApp.maze.some(element =>
+        (element.x === currentApp.player.x) &&
+        (element.y === currentApp.player.y - 1))) && (currentApp.player.y > 0))
       {
-        currentApp.player[1] = currentApp.player[1] - 1;
+        currentApp.player = currentApp.maze.find(element =>
+          (element.x === currentApp.player.x) &&
+          (element.y === currentApp.player.y - 1));
         currentApp.checkMaze();
       }
       break;
     case 'ArrowRight':
-      if ((currentApp.maze.containsArray([currentApp.player[0] + 1,
-        currentApp.player[1]]) === true) && (currentApp.player[0] < width - 1))
+      if ((currentApp.maze.some(element =>
+        (element.x === currentApp.player.x + 1) &&
+        (element.y === currentApp.player.y))) &&
+        (currentApp.player.x < width - 1))
       {
-        currentApp.player[0] = currentApp.player[0] + 1;
+        currentApp.player = currentApp.maze.find(element =>
+          (element.x === currentApp.player.x + 1) &&
+          (element.y === currentApp.player.y));
         currentApp.checkMaze();
       }
       break;
     case 'ArrowDown':
-      if ((currentApp.maze.containsArray([currentApp.player[0],
-        currentApp.player[1] + 1]) === true) &&
-        (currentApp.player[1] < height - 1))
+      if ((currentApp.maze.some(element =>
+        (element.x === currentApp.player.x) &&
+        (element.y === currentApp.player.y + 1))) &&
+        (currentApp.player.y < height - 1))
       {
-        currentApp.player[1] = currentApp.player[1] + 1;
+        currentApp.player = currentApp.maze.find(element =>
+          (element.x === currentApp.player.x) &&
+          (element.y === currentApp.player.y + 1));
         currentApp.checkMaze();
       }
       break;
     case 's':
     case 'S':
-      if (currentApp.walls.length == 0)
+      if (currentApp.walls.length === 0)
       {
         currentApp.solution = [];
         let goalRoot = [];
         let playerRoot = [];
         let tmp = currentApp.goal;
-        while ((currentApp.tree[tmp][0] !== tmp[0]) ||
-          (currentApp.tree[tmp][1] !== tmp[1]))
+        while (!_.isEqual(tmp, tmp.parents))
         {
-          tmp = currentApp.tree[tmp];
+          tmp = tmp.parents;
           goalRoot.push(tmp);
         }
-        tmp = currentApp.player.slice();
+        tmp = _.cloneDeep(currentApp.player);
         playerRoot.push(tmp);
-        while ((currentApp.tree[tmp][0] !== tmp[0]) ||
-          (currentApp.tree[tmp][1] !== tmp[1]))
+        while (!_.isEqual(tmp, tmp.parents))
         {
-          tmp = currentApp.tree[tmp];
+          tmp = tmp.parents;
           playerRoot.push(tmp);
         }
-        let sameRoot = goalRoot.filter(cell =>
-          playerRoot.containsArray(cell) === true);
-        goalRoot = goalRoot.filter(cell =>
-          sameRoot.containsArray(cell) === false);
-        playerRoot = playerRoot.filter(cell =>
-          sameRoot.containsArray(cell) === false);
+        let sameRoot = goalRoot.filter(cell => playerRoot.some(element =>
+          _.isEqual(element, cell)));
+        goalRoot = goalRoot.filter(cell => !sameRoot.some(element =>
+          _.isEqual(element, cell)));
+        playerRoot = playerRoot.filter(cell => !sameRoot.some(element =>
+          _.isEqual(element, cell)));
         currentApp.solution = goalRoot.concat(playerRoot);
         if (sameRoot.length > 0)
         {
