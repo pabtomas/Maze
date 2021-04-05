@@ -402,7 +402,6 @@ function setup()
   context = canvas.getContext('2d', {
     alpha: false
   });
-  context.font = "Arial";
 }
 
 window.addEventListener('load', function(event) {
