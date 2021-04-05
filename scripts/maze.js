@@ -11,7 +11,7 @@ let width = 6;
 let height = 3;
 let currentApp = null;
 
-const minFrameTime = 12;
+const minFrameTime = 1;
 const squareSize = 10;
 
 // ------------------------------------
@@ -24,6 +24,12 @@ class Cell
   {
     this.x = x;
     this.y = y;
+    this.children = [];
+  }
+
+  isEqual(cell)
+  {
+    return (this.x === cell.x) && (this.y === cell.y);
   }
 }
 
@@ -40,49 +46,36 @@ class Game
 
   init()
   {
-    this.maze = [];
     this.walls = [];
-    this.player;
     this.solution = [];
-
-    let randomSide = getRandomInt(4);
-    if (randomSide === 0)
-    {
-      this.player = new Cell(getRandomInt(width), 0);
-    } else if (randomSide === 1) {
-      this.player = new Cell(0, getRandomInt(height));
-    } else if (randomSide === 2) {
-      this.player = new Cell(getRandomInt(width), height - 1);
-    } else {
-      this.player = new Cell(width - 1, getRandomInt(height));
-    }
-    this.player.parents = this.player;
-
-    this.maze.push(_.cloneDeep(this.player));
-    this.goal = _.cloneDeep(this.player);
-    this.addNeighbours(this.player);
+    this.maze = [new Cell(getRandomInt(width), getRandomInt(height))];
+    this.maze[0].parents = this.maze[0];
+    this.addNeighbours(this.maze[0]);
+    this.goal = new Cell(-1, -1);
+    this.player = new Cell(-1, -1);
+    this.built = false;
   }
 
   neighboursInMaze(cell)
   {
     let res = 0;
     if (this.maze.some(element =>
-      (element.x === cell.x - 1) && (element.y === cell.y)))
+      element.isEqual(new Cell(cell.x - 1, cell.y))))
     {
       res = res + 1;
     }
     if (this.maze.some(element =>
-      (element.x === cell.x + 1) && (element.y === cell.y)))
+      element.isEqual(new Cell(cell.x + 1, cell.y))))
     {
       res = res + 1;
     }
     if (this.maze.some(element =>
-      (element.x === cell.x) && (element.y === cell.y - 1)))
+      element.isEqual(new Cell(cell.x, cell.y - 1))))
     {
       res = res + 1;
     }
     if (this.maze.some(element =>
-      (element.x === cell.x) && (element.y === cell.y + 1)))
+      element.isEqual(new Cell(cell.x, cell.y + 1))))
     {
       res = res + 1;
     }
@@ -95,8 +88,7 @@ class Game
     if (cell.x > 0)
     {
       neighbour = new Cell(cell.x - 1, cell.y);
-      if (!this.maze.some(element =>
-        (element.x === neighbour.x) && (element.y === neighbour.y)))
+      if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
@@ -104,8 +96,7 @@ class Game
     if (cell.x < width - 1)
     {
       neighbour = new Cell(cell.x + 1, cell.y);
-      if (!this.maze.some(element =>
-        (element.x === neighbour.x) && (element.y === neighbour.y)))
+      if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
@@ -113,8 +104,7 @@ class Game
     if (cell.y > 0)
     {
       neighbour = new Cell(cell.x, cell.y - 1);
-      if (!this.maze.some(element =>
-        (element.x === neighbour.x) && (element.y === neighbour.y)))
+      if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
@@ -122,8 +112,7 @@ class Game
     if (cell.y < height - 1)
     {
       neighbour = new Cell(cell.x, cell.y + 1);
-      if (!this.maze.some(element =>
-        (element.x === neighbour.x) && (element.y === neighbour.y)))
+      if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
@@ -133,41 +122,47 @@ class Game
   searchParents(cell)
   {
     if (this.maze.some(element =>
-      (element.x === cell.x - 1) && (element.y === cell.y)))
+      element.isEqual(new Cell(cell.x - 1, cell.y))))
     {
       cell.parents = this.maze.find(element =>
-        (element.x === cell.x - 1) && (element.y === cell.y));
+        element.isEqual(new Cell(cell.x - 1, cell.y)));
     } else if (this.maze.some(element =>
-      (element.x === cell.x + 1) && (element.y === cell.y))) {
+      element.isEqual(new Cell(cell.x + 1, cell.y)))) {
         cell.parents = this.maze.find(element =>
-          (element.x === cell.x + 1) && (element.y === cell.y));
+          element.isEqual(new Cell(cell.x + 1, cell.y)));
     } else if (this.maze.some(element =>
-      (element.x === cell.x) && (element.y === cell.y - 1))) {
+      element.isEqual(new Cell(cell.x, cell.y - 1)))) {
         cell.parents = this.maze.find(element =>
-          (element.x === cell.x) && (element.y === cell.y - 1));
+          element.isEqual(new Cell(cell.x, cell.y - 1)));
     } else if (this.maze.some(element =>
-      (element.x === cell.x) && (element.y === cell.y + 1))) {
+      element.isEqual(new Cell(cell.x, cell.y + 1)))) {
         cell.parents = this.maze.find(element =>
-          (element.x === cell.x) && (element.y === cell.y + 1));
+          element.isEqual(new Cell(cell.x, cell.y + 1)));
     }
+    cell.parents.children.push(cell);
   }
 
   update()
   {
     if (this.walls.length > 0)
     {
-      let cell_index = getRandomInt(this.walls.length);
-      if (!this.maze.some(element =>
-        (element.x === this.walls[cell_index].x) &&
-        (element.y === this.walls[cell_index].y)) &&
-        (this.neighboursInMaze(this.walls[cell_index]) < 2))
+      let cellIndex = getRandomInt(this.walls.length);
+      if (!this.maze.some(element => element.isEqual(this.walls[cellIndex]))
+        && (this.neighboursInMaze(this.walls[cellIndex]) < 2))
       {
-        this.searchParents(this.walls[cell_index]);
-        this.maze.push(this.walls[cell_index]);
-        this.goal = this.walls[cell_index];
-        this.addNeighbours(this.walls[cell_index]);
+        this.searchParents(this.walls[cellIndex]);
+        this.maze.push(this.walls[cellIndex]);
+        this.goal = this.walls[cellIndex];
+        this.addNeighbours(this.walls[cellIndex]);
       }
-      this.walls.splice(cell_index, 1);
+      this.walls.splice(cellIndex, 1);
+    } else {
+      if (!this.built)
+      {
+        this.built = true;
+        this.player = bfs(this.maze[0]);
+        this.goal = bfs(this.player);
+      }
     }
   }
 
@@ -183,17 +178,23 @@ class Game
       context.fillRect(cell.x * squareSize, cell.y * squareSize,
         squareSize, squareSize);
     });
-    context.fillStyle = "green";
-    context.fillRect(this.goal.x * squareSize, this.goal.y * squareSize,
-      squareSize, squareSize);
-    context.fillStyle = "red";
-    context.fillRect(this.player.x * squareSize, this.player.y * squareSize,
-      squareSize, squareSize);
+    if (!this.goal.isEqual(new Cell(-1, -1)))
+    {
+      context.fillStyle = "green";
+      context.fillRect(this.goal.x * squareSize, this.goal.y * squareSize,
+        squareSize, squareSize);
+    }
+    if (!this.player.isEqual(new Cell(-1, -1)))
+    {
+      context.fillStyle = "red";
+      context.fillRect(this.player.x * squareSize, this.player.y * squareSize,
+        squareSize, squareSize);
+    }
   }
 
   checkMaze()
   {
-    if ((this.player.x === this.goal.x) && (this.player.y === this.goal.y))
+    if (this.player.isEqual(this.goal))
     {
       canvas.remove();
       levelText.remove();
@@ -213,6 +214,33 @@ class Game
 function getRandomInt(max)
 {
   return Math.floor(Math.random() * max);
+}
+
+function bfs(root)
+{
+  let queue = [root];
+  let currentNode;
+  let neighbourhood;
+  let visited = [root];
+  while (queue.length > 0)
+  {
+    currentNode = queue.splice(0, 1)[0];
+    if (currentNode.isEqual(currentNode.parents))
+    {
+      neighbourhood = currentNode.children;
+    } else {
+      neighbourhood = currentNode.children.concat([currentNode.parents]);
+    }
+    for (neighbour of neighbourhood)
+    {
+      if (!visited.some(element => neighbour.isEqual(element)))
+      {
+        visited.push(neighbour);
+        queue.push(neighbour);
+      }
+    }
+  }
+  return visited[visited.length - 1];
 }
 
 // ------------------------------------
@@ -284,51 +312,46 @@ window.addEventListener('load', function(event) {
 }, false);
 
 window.addEventListener('keydown', function(event) {
+  let neighbour;
   switch (event.key)
   {
     case 'ArrowLeft':
-      if ((currentApp.maze.some(element =>
-        (element.x === currentApp.player.x - 1) &&
-        (element.y === currentApp.player.y))) && (currentApp.player.x > 0))
+      neighbour = new Cell(currentApp.player.x - 1, currentApp.player.y);
+      if (currentApp.maze.some(element => element.isEqual(neighbour))
+        && (currentApp.player.x > 0))
       {
-        currentApp.player = currentApp.maze.find(element =>
-          (element.x === currentApp.player.x - 1) &&
-          (element.y === currentApp.player.y));
+        currentApp.player =
+          currentApp.maze.find(element => element.isEqual(neighbour));
         currentApp.checkMaze();
       }
       break;
     case 'ArrowUp':
-      if ((currentApp.maze.some(element =>
-        (element.x === currentApp.player.x) &&
-        (element.y === currentApp.player.y - 1))) && (currentApp.player.y > 0))
+      neighbour = new Cell(currentApp.player.x, currentApp.player.y - 1);
+      if (currentApp.maze.some(element => element.isEqual(neighbour))
+        && (currentApp.player.y > 0))
       {
-        currentApp.player = currentApp.maze.find(element =>
-          (element.x === currentApp.player.x) &&
-          (element.y === currentApp.player.y - 1));
+        currentApp.player =
+          currentApp.maze.find(element => element.isEqual(neighbour));
         currentApp.checkMaze();
       }
       break;
     case 'ArrowRight':
-      if ((currentApp.maze.some(element =>
-        (element.x === currentApp.player.x + 1) &&
-        (element.y === currentApp.player.y))) &&
-        (currentApp.player.x < width - 1))
+      neighbour = new Cell(currentApp.player.x + 1, currentApp.player.y);
+      if (currentApp.maze.some(element => element.isEqual(neighbour))
+        && (currentApp.player.x < width - 1))
       {
-        currentApp.player = currentApp.maze.find(element =>
-          (element.x === currentApp.player.x + 1) &&
-          (element.y === currentApp.player.y));
+        currentApp.player =
+          currentApp.maze.find(element => element.isEqual(neighbour));
         currentApp.checkMaze();
       }
       break;
     case 'ArrowDown':
-      if ((currentApp.maze.some(element =>
-        (element.x === currentApp.player.x) &&
-        (element.y === currentApp.player.y + 1))) &&
-        (currentApp.player.y < height - 1))
+      neighbour = new Cell(currentApp.player.x, currentApp.player.y + 1);
+      if (currentApp.maze.some(element => element.isEqual(neighbour))
+        && (currentApp.player.y < height - 1))
       {
-        currentApp.player = currentApp.maze.find(element =>
-          (element.x === currentApp.player.x) &&
-          (element.y === currentApp.player.y + 1));
+        currentApp.player =
+          currentApp.maze.find(element => element.isEqual(neighbour));
         currentApp.checkMaze();
       }
       break;
@@ -340,24 +363,24 @@ window.addEventListener('keydown', function(event) {
         let goalRoot = [];
         let playerRoot = [];
         let tmp = currentApp.goal;
-        while (!_.isEqual(tmp, tmp.parents))
+        while (!tmp.isEqual(tmp.parents))
         {
           tmp = tmp.parents;
           goalRoot.push(tmp);
         }
         tmp = _.cloneDeep(currentApp.player);
         playerRoot.push(tmp);
-        while (!_.isEqual(tmp, tmp.parents))
+        while (!tmp.isEqual(tmp.parents))
         {
           tmp = tmp.parents;
           playerRoot.push(tmp);
         }
         let sameRoot = goalRoot.filter(cell => playerRoot.some(element =>
-          _.isEqual(element, cell)));
+          element.isEqual(cell)));
         goalRoot = goalRoot.filter(cell => !sameRoot.some(element =>
-          _.isEqual(element, cell)));
+          element.isEqual(cell)));
         playerRoot = playerRoot.filter(cell => !sameRoot.some(element =>
-          _.isEqual(element, cell)));
+          element.isEqual(cell)));
         currentApp.solution = goalRoot.concat(playerRoot);
         if (sameRoot.length > 0)
         {
