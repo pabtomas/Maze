@@ -61,6 +61,7 @@ class Game
     this.goal = new Cell(-1, -1, -1);
     this.player = new Cell(-1, -1, -1);
     this.built = false;
+    this.solved = false;
   }
 
   neighboursInMaze(cell)
@@ -250,7 +251,8 @@ class Game
         {
           context.lineWidth = squareSize / 5;
           context.strokeStyle = "blueviolet";
-          context.strokeRect(cell.x * squareSize + squareSize / 10, cell.y * squareSize + squareSize / 10,
+          context.strokeRect(cell.x * squareSize + squareSize / 10,
+            cell.y * squareSize + squareSize / 10,
             squareSize - squareSize / 5, squareSize - squareSize / 5);
         }
       }
@@ -274,7 +276,17 @@ class Game
 
   movePlayer(neighbour)
   {
-    this.player = this.maze.find(element => element.isEqual(neighbour));
+    let newPlayerPos = this.maze.find(element => element.isEqual(neighbour));
+    if (this.solved)
+    {
+      if (newPlayerPos.isSolution)
+      {
+        this.player.isSolution = false;
+      } else {
+        newPlayerPos.isSolution = true;
+      }
+    }
+    this.player = newPlayerPos;
     this.checkMaze();
     viewer = this.player.z;
     if (viewer < 0)
@@ -483,42 +495,42 @@ window.addEventListener('keydown', function(event) {
     case 'S':
       if (currentApp.walls.length === 0)
       {
-        for (cell of currentApp.maze)
+        if (!currentApp.solved)
         {
-          cell.isSolution = false;
-        }
-        let goalRoot = [];
-        let playerRoot = [];
-        let tmp = currentApp.goal;
-        while (!tmp.isEqual(tmp.parents))
-        {
-          tmp = tmp.parents;
-          goalRoot.push(tmp);
-        }
-        tmp = _.cloneDeep(currentApp.player);
-        playerRoot.push(tmp);
-        while (!tmp.isEqual(tmp.parents))
-        {
-          tmp = tmp.parents;
-          playerRoot.push(tmp);
-        }
-        let sameRoot = goalRoot.filter(cell => playerRoot.some(element =>
-          element.isEqual(cell)));
-        goalRoot = goalRoot.filter(cell => !sameRoot.some(element =>
-          element.isEqual(cell)));
-        playerRoot = playerRoot.filter(cell => !sameRoot.some(element =>
-          element.isEqual(cell)));
-        let solution = goalRoot.concat(playerRoot);
-        if (sameRoot.length > 0)
-        {
-          solution.push(sameRoot[0]);
-        }
-        for (cell of solution)
-        {
-          if (currentApp.maze.some(element => element.isEqual(cell)))
+          currentApp.solved = true;
+          let goalRoot = [];
+          let playerRoot = [];
+          let tmp = currentApp.goal;
+          while (!tmp.isEqual(tmp.parents))
           {
-            currentApp.maze.find(element =>
-              element.isEqual(cell)).isSolution = true;
+            tmp = tmp.parents;
+            goalRoot.push(tmp);
+          }
+          tmp = _.cloneDeep(currentApp.player);
+          playerRoot.push(tmp);
+          while (!tmp.isEqual(tmp.parents))
+          {
+            tmp = tmp.parents;
+            playerRoot.push(tmp);
+          }
+          let sameRoot = goalRoot.filter(cell => playerRoot.some(element =>
+            element.isEqual(cell)));
+          goalRoot = goalRoot.filter(cell => !sameRoot.some(element =>
+            element.isEqual(cell)));
+          playerRoot = playerRoot.filter(cell => !sameRoot.some(element =>
+            element.isEqual(cell)));
+          let solution = goalRoot.concat(playerRoot);
+          if (sameRoot.length > 0)
+          {
+            solution.push(sameRoot[0]);
+          }
+          for (cell of solution)
+          {
+            if (currentApp.maze.some(element => element.isEqual(cell)))
+            {
+              currentApp.maze.find(element =>
+                element.isEqual(cell)).isSolution = true;
+            }
           }
         }
       }
