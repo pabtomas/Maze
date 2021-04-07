@@ -10,6 +10,7 @@ let level = 1;
 let width = 6;
 let height = 3;
 let floor = 1;
+let floorBackup = floor;
 let floorStep = 10;
 let newFloorLevel = 10;
 
@@ -19,6 +20,7 @@ let nodeSize = 20;
 
 const doorStep = 30;
 const minFrameTime = 1;
+const springSpawn = 0.1;
 
 const playerColor = 'red';
 const princessColor = 'fuchsia';
@@ -29,6 +31,7 @@ const downStairsColor = 'dodgerblue';
 const upAndDownStairsColor = 'limegreen';
 const doorColor = 'black';
 const keyColor = 'gold';
+const springColor = 'orange';
 
 // ------------------------------------
 // Node class
@@ -72,6 +75,26 @@ class Node
       new Node(this.x, this.y, this.z - 1),
       new Node(this.x, this.y, this.z + 1),
     ];
+  }
+
+  isSpring()
+  {
+    return !this.getNeighbourhood().every(
+      neighbour => this.possibleNeighbourhood().some(
+        element => element.isEqual(neighbour)));
+  }
+
+  getSpringDest()
+  {
+    if (this.isSpring())
+    {
+      return this.getNeighbourhood().find(
+        neighbour => !this.possibleNeighbourhood().some(
+          element => element.isEqual(neighbour)));
+    } else {
+      throw new Error(
+        'use GetSpringDest() Node method but this node is not a spring:', this);
+    }
   }
 }
 
@@ -130,10 +153,15 @@ class Game
 
   determineParents(node)
   {
-    let neighbours = node.possibleNeighbourhood();
-    let parents = this.maze.find(
-      element => neighbours.some(neighbour => element.isEqual(neighbour)));
-    node.parents = parents;
+    if (this.neighboursInMaze(node) === 1)
+    {
+      let neighbours = node.possibleNeighbourhood();
+      let parents = this.maze.find(
+        element => neighbours.some(neighbour => element.isEqual(neighbour)));
+      node.parents = parents;
+    } else {
+      node.parents = this.maze[this.maze.length - 1];
+    }
     node.parents.children.push(node);
   }
 
@@ -175,13 +203,35 @@ class Game
     // maze is built if each node is visited
     if (this.walls.length > 0)
     {
-      // randomized the Prim algorithm.
-      let nodeIndex = getRandomInt(this.walls.length);
+      let nodeIndex;
+
+      if (this.springLevel)
+      {
+        // a spring can only have one destination so if the last node added to
+        // the maze is a spring, it can't be chosen
+        if (!this.maze[this.maze.length - 1].isSpring() &&
+          (Math.random() < springSpawn))
+        {
+          nodeIndex = 0;
+          let newSpring;
+          do {
+            // spring levels have only one floor
+            newSpring = new Node(getRandomInt(width), getRandomInt(height), 0);
+          } while (this.maze.some(element => element.isEqual(newSpring)))
+          this.walls = [newSpring].concat(this.walls);
+        } else {
+          // randomized the Prim algorithm.
+          nodeIndex = getRandomInt(this.walls.length);
+        }
+      } else {
+        // randomized the Prim algorithm.
+        nodeIndex = getRandomInt(this.walls.length);
+      }
 
       // if a node is not already in the maze and if it has 1 neighbour, it
       // it added to the maze.
       if (!this.maze.some(element => element.isEqual(this.walls[nodeIndex]))
-        && (this.neighboursInMaze(this.walls[nodeIndex]) === 1))
+        && (this.neighboursInMaze(this.walls[nodeIndex]) < 2))
       {
         this.determineParents(this.walls[nodeIndex]);
         this.maze.push(this.walls[nodeIndex]);
@@ -277,31 +327,36 @@ class Game
     this.maze.forEach(function(node) {
       if (node.z === viewer)
       {
-        let down = false;
-        let up = false;
-        let neighbourhood = node.getNeighbourhood();
-
-        if (neighbourhood.some(element =>
-          element.isEqual(new Node(node.x, node.y, node.z - 1))))
+        if (node.isSpring())
         {
-          down = true;
-        }
-
-        if (neighbourhood.some(element =>
-          element.isEqual(new Node(node.x, node.y, node.z + 1))))
-        {
-          up = true;
-        }
-
-        if (down && up)
-        {
-          context.fillStyle = upAndDownStairsColor;
-        } else if (down) {
-          context.fillStyle = downStairsColor;
-        } else if (up) {
-          context.fillStyle = upStairsColor;
+          context.fillStyle = springColor;
         } else {
-          context.fillStyle = mazeColor;
+          let down = false;
+          let up = false;
+          let neighbourhood = node.getNeighbourhood();
+
+          if (neighbourhood.some(element =>
+            element.isEqual(new Node(node.x, node.y, node.z - 1))))
+          {
+            down = true;
+          }
+
+          if (neighbourhood.some(element =>
+            element.isEqual(new Node(node.x, node.y, node.z + 1))))
+          {
+            up = true;
+          }
+
+          if (down && up)
+          {
+            context.fillStyle = upAndDownStairsColor;
+          } else if (down) {
+            context.fillStyle = downStairsColor;
+          } else if (up) {
+            context.fillStyle = upStairsColor;
+          } else {
+            context.fillStyle = mazeColor;
+          }
         }
 
         context.fillRect(node.x * nodeSize, node.y * nodeSize,
@@ -550,9 +605,22 @@ class Game
       height += 1;
       if (level === newFloorLevel)
       {
-        floor += 1;
+        floorBackup += 1;
+        floor = floorBackup;
         floorStep += 10;
         newFloorLevel += floorStep;
+      }
+      if (floorBackup > 1)
+      {
+        this.springLevel = Math.random() < 0.5;
+
+        // spring levels have only one floor
+        if (this.springLevel)
+        {
+          floor = 1;
+        } else {
+          floor = floorBackup;
+        }
       }
       setup();
       this.init();
@@ -746,6 +814,17 @@ window.addEventListener('keydown', function(event) {
         currentApp.movePlayer(neighbour);
       }
       break;
+    case ' ':
+      if (currentApp.player.isSpring())
+      {
+        neighbour = currentApp.player.getSpringDest();
+        if (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
+          currentApp.canUnlockDoor)
+        {
+          currentApp.movePlayer(neighbour);
+        }
+      }
+      break;
     case 'Shift':
       viewer += 1;
 
@@ -760,7 +839,7 @@ window.addEventListener('keydown', function(event) {
         .concat(floor.toString()).concat(' | KEYS = ')
         .concat((currentApp.canUnlockDoor ? 1 : 0).toString()).concat('/1');
       break;
-    case ' ':
+    case 'Control':
       viewer -= 1;
 
       // fix a display bug when the maze isn't built and the player position
