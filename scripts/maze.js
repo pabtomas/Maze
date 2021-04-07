@@ -61,6 +61,18 @@ class Node
       return this.children.concat([this.parents]);
     }
   }
+
+  possibleNeighbourhood()
+  {
+    return [
+      new Node(this.x - 1, this.y, this.z),
+      new Node(this.x + 1, this.y, this.z),
+      new Node(this.x, this.y - 1, this.z),
+      new Node(this.x, this.y + 1, this.z),
+      new Node(this.x, this.y, this.z - 1),
+      new Node(this.x, this.y, this.z + 1),
+    ];
+  }
 }
 
 // ------------------------------------
@@ -101,121 +113,27 @@ class Game
   */
   neighboursInMaze(node)
   {
-    let res = 0;
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x - 1, node.y, node.z))))
-    {
-      res += 1;
-    }
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x + 1, node.y, node.z))))
-    {
-      res += 1;
-    }
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y - 1, node.z))))
-    {
-      res += 1;
-    }
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y + 1, node.z))))
-    {
-      res += 1;
-    }
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y, node.z - 1))))
-    {
-      res += 1;
-    }
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y, node.z + 1))))
-    {
-      res += 1;
-    }
-    return res;
+    return this.maze.filter(
+      element => element.possibleNeighbourhood().some(
+        child => child.isEqual(node))).length;
   }
 
   addNeighbours(node)
   {
-    let neighbour;
-    if (node.x > 0)
-    {
-      neighbour = new Node(node.x - 1, node.y, node.z);
-      if (!this.maze.some(element => element.isEqual(neighbour)))
-      {
-        this.walls.push(neighbour);
-      }
-    }
-    if (node.x < width - 1)
-    {
-      neighbour = new Node(node.x + 1, node.y, node.z);
-      if (!this.maze.some(element => element.isEqual(neighbour)))
-      {
-        this.walls.push(neighbour);
-      }
-    }
-    if (node.y > 0)
-    {
-      neighbour = new Node(node.x, node.y - 1, node.z);
-      if (!this.maze.some(element => element.isEqual(neighbour)))
-      {
-        this.walls.push(neighbour);
-      }
-    }
-    if (node.y < height - 1)
-    {
-      neighbour = new Node(node.x, node.y + 1, node.z);
-      if (!this.maze.some(element => element.isEqual(neighbour)))
-      {
-        this.walls.push(neighbour);
-      }
-    }
-    if (node.z > 0)
-    {
-      neighbour = new Node(node.x, node.y, node.z - 1);
-      if (!this.maze.some(element => element.isEqual(neighbour)))
-      {
-        this.walls.push(neighbour);
-      }
-    }
-    if (node.z < floor - 1)
-    {
-      neighbour = new Node(node.x, node.y, node.z + 1);
-      if (!this.maze.some(element => element.isEqual(neighbour)))
-      {
-        this.walls.push(neighbour);
-      }
-    }
+    let neighbours = node.possibleNeighbourhood().filter(
+      neighbour => (neighbour.x > -1) && (neighbour.x < width) &&
+        (neighbour.y > -1) && (neighbour.y < height) && (neighbour.z > -1)
+        && (neighbour.z < floor) &&
+        !this.maze.some(element => element.isEqual(neighbour)));
+    this.walls = this.walls.concat(neighbours);
   }
 
   determineParents(node)
   {
-    if (this.maze.some(element =>
-      element.isEqual(new Node(node.x - 1, node.y, node.z))))
-    {
-      node.parents = this.maze.find(element =>
-        element.isEqual(new Node(node.x - 1, node.y, node.z)));
-    } else if (this.maze.some(element =>
-      element.isEqual(new Node(node.x + 1, node.y, node.z)))) {
-        node.parents = this.maze.find(element =>
-          element.isEqual(new Node(node.x + 1, node.y, node.z)));
-    } else if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y - 1, node.z)))) {
-        node.parents = this.maze.find(element =>
-          element.isEqual(new Node(node.x, node.y - 1, node.z)));
-    } else if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y + 1, node.z)))) {
-        node.parents = this.maze.find(element =>
-          element.isEqual(new Node(node.x, node.y + 1, node.z)));
-    } else if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y, node.z - 1)))) {
-        node.parents = this.maze.find(element =>
-          element.isEqual(new Node(node.x, node.y, node.z - 1)));
-    } else if (this.maze.some(element =>
-      element.isEqual(new Node(node.x, node.y, node.z + 1)))) {
-        node.parents = this.maze.find(element =>
-          element.isEqual(new Node(node.x, node.y, node.z + 1)));
-    }
+    let neighbours = node.possibleNeighbourhood();
+    let parents = this.maze.find(
+      element => neighbours.some(neighbour => element.isEqual(neighbour)));
+    node.parents = parents;
     node.parents.children.push(node);
   }
 
