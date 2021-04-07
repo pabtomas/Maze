@@ -1,12 +1,8 @@
-#Maze
-
-<center>
+# Maze
   
 |<img src="/assets/pictures/stairsmaze_floor1.png"/>|<img src="/assets/pictures/stairsmaze_floor2.png"/>|<img src="/assets/pictures/stairsmaze_floor3.png"/>|
 |:------------:|:-------------:|:-----------:|
 |<b>FLOOR 1</b>|<b>FLOOR 2</b>|<b>FLOOR 3</b>|
-
-</center>
 
 This Maze is a <i>Stairs Maze</i>. A <i>Stairs Maze</i> is a 3D Maze.</br></br>
 The <i>Red Circle</i> is the <i>Player</i>. Press the arrows' keyboard to move him.</br>
@@ -20,11 +16,7 @@ The <i>Yellow Squares</i> are <i>Up Stairs</i>. The <i>Player</i> can use it wit
 The <i>Green Squares</i> are <i>Up</i> and <i>Down Stairs</i>.</br>
 Press the <i>Shift</i> and the <i>Control</i> keys to change the maze's floor.</br>
 
-</center>
-
 <img src="/assets/pictures/springsmaze.png">
-
-</center>
 
 This Maze is a <i>Springs Maze</i>. A <i>Springs Maze</i> is a 2D Maze.</br></br>
 The <i>Orange Squares</i> are <i>Springs</i>. A <i>Spring</i> is linked to another <i>Spring</i> (and only one).</br>
