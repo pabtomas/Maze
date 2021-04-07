@@ -11,7 +11,7 @@ The <i>Blue Squares</i> are <i>Down Stairs</i>. The <i>Player</i> can use it wit
 The <i>Yellow Squares</i> are <i>Up Stairs</i>. The <i>Player</i> can use it with <i>PageUp</i> key.</br>
 The <i>Green Squares</i> are <i>Up</i> and <i>Down Stairs</i>.</br>
 Press <i>Shift</i> and <i>Space</i> keys to change the maze's floor.</br>
-Press <i>+</i> and <i>-</i> keys to zoom in and zoom out on the maze.</br>
+Press <i>+</i> and <i>-</i> keys to zoom in and zoom out.</br>
 Maze has always a solution. Press <i>S</i> key to see the solution.</br>
 To play game, type this in your terminal when you are in the <b>./Maze</b> repository:</br>
 ```sh
