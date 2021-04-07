@@ -2,7 +2,6 @@
 // Useful variables & constants
 // ------------------------------------
 
-let count = 0;
 let canvas;
 let levelText;
 let context;
@@ -16,16 +15,26 @@ let newFloorLevel = 10;
 
 let currentApp = null;
 let viewer = 0;
+let nodeSize = 20;
 
-const keyStep = 50;
+const doorStep = 30;
 const minFrameTime = 1;
-const squareSize = 20;
+
+const playerColor = 'red';
+const princessColor = 'fuchsia';
+const mazeColor = 'white';
+const solutionColor = 'blueviolet';
+const upStairsColor = 'gold';
+const downStairsColor = 'dodgerblue';
+const upAndDownStairsColor = 'limegreen';
+const doorColor = 'black';
+const keyColor = 'gold';
 
 // ------------------------------------
-// Cell class
+// Node class
 // ------------------------------------
 
-class Cell
+class Node
 {
   constructor(x, y, z)
   {
@@ -38,9 +47,9 @@ class Cell
     this.weight = 0;
   }
 
-  isEqual(cell)
+  isEqual(node)
   {
-    return (this.x === cell.x) && (this.y === cell.y) && (this.z === cell.z);
+    return (this.x === node.x) && (this.y === node.y) && (this.z === node.z);
   }
 
   getNeighbourhood()
@@ -69,101 +78,109 @@ class Game
   {
     this.walls = [];
     this.doors = [];
-    this.maze = [new Cell(getRandomInt(width), getRandomInt(height),
+
+    // Init the maze with a random starting node
+    this.maze = [new Node(getRandomInt(width), getRandomInt(height),
       getRandomInt(floor))];
     this.maze[0].parents = this.maze[0];
     this.addNeighbours(this.maze[0]);
-    this.goal = new Cell(-1, -1, -1);
-    this.player = new Cell(-1, -1, -1);
+    this.princess = new Node(-1, -1, -1);
+    this.player = new Node(-1, -1, -1);
     this.built = false;
     this.solved = false;
-    this.key = new Cell(-1, -1, -1);
+    this.key = new Node(-1, -1, -1);
     this.keysPos = [];
     this.canUnlockDoor = false;
   }
 
-  neighboursInMaze(cell)
+  /*
+    Returns the number of neighbours of node. This function is used instead of
+    node.getNeighbourhood().length because the node's neighbourhood is
+    determined only after a node is added to the maze and maze's building needs
+    to know the neighbourhood of a node before adding it.
+  */
+  neighboursInMaze(node)
   {
     let res = 0;
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x - 1, cell.y, cell.z))))
+      element.isEqual(new Node(node.x - 1, node.y, node.z))))
     {
-      res = res + 1;
+      res += 1;
     }
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x + 1, cell.y, cell.z))))
+      element.isEqual(new Node(node.x + 1, node.y, node.z))))
     {
-      res = res + 1;
+      res += 1;
     }
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y - 1, cell.z))))
+      element.isEqual(new Node(node.x, node.y - 1, node.z))))
     {
-      res = res + 1;
+      res += 1;
     }
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y + 1, cell.z))))
+      element.isEqual(new Node(node.x, node.y + 1, node.z))))
     {
-      res = res + 1;
+      res += 1;
     }
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y, cell.z - 1))))
+      element.isEqual(new Node(node.x, node.y, node.z - 1))))
     {
-      res = res + 1;
+      res += 1;
     }
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y, cell.z + 1))))
+      element.isEqual(new Node(node.x, node.y, node.z + 1))))
     {
-      res = res + 1;
+      res += 1;
     }
     return res;
   }
 
-  addNeighbours(cell)
+  addNeighbours(node)
   {
     let neighbour;
-    if (cell.x > 0)
+    if (node.x > 0)
     {
-      neighbour = new Cell(cell.x - 1, cell.y, cell.z);
+      neighbour = new Node(node.x - 1, node.y, node.z);
       if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
     }
-    if (cell.x < width - 1)
+    if (node.x < width - 1)
     {
-      neighbour = new Cell(cell.x + 1, cell.y, cell.z);
+      neighbour = new Node(node.x + 1, node.y, node.z);
       if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
     }
-    if (cell.y > 0)
+    if (node.y > 0)
     {
-      neighbour = new Cell(cell.x, cell.y - 1, cell.z);
+      neighbour = new Node(node.x, node.y - 1, node.z);
       if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
     }
-    if (cell.y < height - 1)
+    if (node.y < height - 1)
     {
-      neighbour = new Cell(cell.x, cell.y + 1, cell.z);
+      neighbour = new Node(node.x, node.y + 1, node.z);
       if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
     }
-    if (cell.z > 0)
+    if (node.z > 0)
     {
-      neighbour = new Cell(cell.x, cell.y, cell.z - 1);
+      neighbour = new Node(node.x, node.y, node.z - 1);
       if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
       }
     }
-    if (cell.z < floor - 1)
+    if (node.z < floor - 1)
     {
-      neighbour = new Cell(cell.x, cell.y, cell.z + 1);
+      neighbour = new Node(node.x, node.y, node.z + 1);
       if (!this.maze.some(element => element.isEqual(neighbour)))
       {
         this.walls.push(neighbour);
@@ -171,44 +188,48 @@ class Game
     }
   }
 
-  searchParents(cell)
+  determineParents(node)
   {
     if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x - 1, cell.y, cell.z))))
+      element.isEqual(new Node(node.x - 1, node.y, node.z))))
     {
-      cell.parents = this.maze.find(element =>
-        element.isEqual(new Cell(cell.x - 1, cell.y, cell.z)));
+      node.parents = this.maze.find(element =>
+        element.isEqual(new Node(node.x - 1, node.y, node.z)));
     } else if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x + 1, cell.y, cell.z)))) {
-        cell.parents = this.maze.find(element =>
-          element.isEqual(new Cell(cell.x + 1, cell.y, cell.z)));
+      element.isEqual(new Node(node.x + 1, node.y, node.z)))) {
+        node.parents = this.maze.find(element =>
+          element.isEqual(new Node(node.x + 1, node.y, node.z)));
     } else if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y - 1, cell.z)))) {
-        cell.parents = this.maze.find(element =>
-          element.isEqual(new Cell(cell.x, cell.y - 1, cell.z)));
+      element.isEqual(new Node(node.x, node.y - 1, node.z)))) {
+        node.parents = this.maze.find(element =>
+          element.isEqual(new Node(node.x, node.y - 1, node.z)));
     } else if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y + 1, cell.z)))) {
-        cell.parents = this.maze.find(element =>
-          element.isEqual(new Cell(cell.x, cell.y + 1, cell.z)));
+      element.isEqual(new Node(node.x, node.y + 1, node.z)))) {
+        node.parents = this.maze.find(element =>
+          element.isEqual(new Node(node.x, node.y + 1, node.z)));
     } else if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y, cell.z - 1)))) {
-        cell.parents = this.maze.find(element =>
-          element.isEqual(new Cell(cell.x, cell.y, cell.z - 1)));
+      element.isEqual(new Node(node.x, node.y, node.z - 1)))) {
+        node.parents = this.maze.find(element =>
+          element.isEqual(new Node(node.x, node.y, node.z - 1)));
     } else if (this.maze.some(element =>
-      element.isEqual(new Cell(cell.x, cell.y, cell.z + 1)))) {
-        cell.parents = this.maze.find(element =>
-          element.isEqual(new Cell(cell.x, cell.y, cell.z + 1)));
+      element.isEqual(new Node(node.x, node.y, node.z + 1)))) {
+        node.parents = this.maze.find(element =>
+          element.isEqual(new Node(node.x, node.y, node.z + 1)));
     }
-    cell.parents.children.push(cell);
+    node.parents.children.push(node);
   }
 
+  /*
+    Returns true if the graph between the last added door and the possibly
+    next door is a path.
+  */
   subtreeIsPath(door, solution)
   {
     let index = 0;
     if (this.doors.length > 0)
     {
       index = solution.indexOf(
-        solution.find(cell => cell.isEqual(this.doors[this.doors.length - 1])));
+        solution.find(node => node.isEqual(this.doors[this.doors.length - 1])));
     }
     let res = false;
     let currentNode = solution[index];
@@ -227,52 +248,80 @@ class Game
     return res;
   }
 
+  /*
+    Build progressively the maze after each call. It is a Randomized Prim
+    algorithm.
+  */
   update()
   {
+    // maze is built if each node is visited
     if (this.walls.length > 0)
     {
-      let cellIndex = getRandomInt(this.walls.length);
-      if (!this.maze.some(element => element.isEqual(this.walls[cellIndex]))
-        && (this.neighboursInMaze(this.walls[cellIndex]) < 2))
+      // randomized the Prim algorithm.
+      let nodeIndex = getRandomInt(this.walls.length);
+
+      // if a node is not already in the maze and if it has 1 neighbour, it
+      // it added to the maze.
+      if (!this.maze.some(element => element.isEqual(this.walls[nodeIndex]))
+        && (this.neighboursInMaze(this.walls[nodeIndex]) === 1))
       {
-        this.searchParents(this.walls[cellIndex]);
-        this.maze.push(this.walls[cellIndex]);
-        this.addNeighbours(this.walls[cellIndex]);
+        this.determineParents(this.walls[nodeIndex]);
+        this.maze.push(this.walls[nodeIndex]);
+        this.addNeighbours(this.walls[nodeIndex]);
       }
-      this.walls.splice(cellIndex, 1);
+      this.walls.splice(nodeIndex, 1);
+
+    // after the maze is built, player, princess, doors and key are added
     } else {
       if (!this.built)
       {
         this.built = true;
+
+        // princess and player are placed at the extremities of the diameter
+        // of the maze
         this.player = bfs(this.maze[0]);
+        this.princess = bfs(this.player);
+
+        // player doesn't have to come back to the start of the maze to search
+        // a key
         this.keysPos.push(this.player);
+
         viewer = this.player.z;
-        levelText.innerHTML = "LEVEL ".concat(level.toString())
-          .concat(" | FLOOR ").concat((viewer + 1).toString()).concat('/')
-          .concat(floor.toString()).concat(" | KEYS = ")
+        levelText.innerHTML = 'LEVEL '.concat(level.toString())
+          .concat(' | FLOOR ').concat((viewer + 1).toString()).concat('/')
+          .concat(floor.toString()).concat(' | KEYS = ')
           .concat((this.canUnlockDoor ? 1 : 0).toString()).concat('/1');
-        this.goal = bfs(this.player);
-        let solution = this.searchSolution(this.goal);
-        for (let cell of solution)
+
+        let solution = this.searchSolution(this.princess);
+
+        // a new door can be placed every 'doorStep' nodes of the solution
+        for (let node of solution)
         {
-          if ((Math.floor((cell.weight + 1) / keyStep) * keyStep ===
-            cell.weight) && (cell.weight != 0))
+          if ((Math.floor((node.weight + 1) / doorStep) * doorStep ===
+            node.weight) && (node.weight != 0))
           {
-            if (!this.subtreeIsPath(cell, solution))
+            // if between the last added door and the possibly next door there
+            // aren't new intersection, the possibly next door isn't added
+            if (!this.subtreeIsPath(node, solution))
             {
-              this.doors.push(cell);
+              this.doors.push(node);
             }
           }
         }
         if (this.doors.length > 0)
         {
           this.key = this.generateKey(this.player);
+
+          // player doesn't have to come back to a previous key position
           this.keysPos.push(this.key);
         }
       }
     }
   }
 
+  /*
+    Use a BFS to generate a key farthest from the root node
+  */
   generateKey(root)
   {
     root.weight = 0;
@@ -287,151 +336,201 @@ class Game
         if (!visited.some(element => neighbour.isEqual(element)) &&
           !this.doors.some(door => neighbour.isEqual(door)))
         {
-          neighbour.weight = currentNode.weight + 1;
           visited.push(neighbour);
           queue.push(neighbour);
         }
       }
     }
-    let solution = this.searchSolution(this.goal);
+    let solution = this.searchSolution(this.princess);
+
+    // a key can't be on a solution node, a node with more than 1 neighbour
+    // and a previous key position
     while ((visited[visited.length - 1].getNeighbourhood().length > 1) ||
       solution.some(element => element.isEqual(visited[visited.length - 1])) ||
-      this.keysPos.some(key => key.isEqual(visited[visited.length - 1] ||
-      this.player.isEqual(visited[visited.length - 1]))))
+      this.keysPos.some(key => key.isEqual(visited[visited.length - 1])))
     {
       visited.pop();
     }
     return visited[visited.length - 1];
   }
 
-  draw()
+  drawMaze()
   {
-    this.maze.forEach(function(cell) {
-      if (cell.z === viewer)
+    this.maze.forEach(function(node) {
+      if (node.z === viewer)
       {
         let down = false;
         let up = false;
-        let neighbourhood = cell.getNeighbourhood();
+        let neighbourhood = node.getNeighbourhood();
+
         if (neighbourhood.some(element =>
-          element.isEqual(new Cell(cell.x, cell.y, cell.z - 1))))
+          element.isEqual(new Node(node.x, node.y, node.z - 1))))
         {
           down = true;
         }
+
         if (neighbourhood.some(element =>
-          element.isEqual(new Cell(cell.x, cell.y, cell.z + 1))))
+          element.isEqual(new Node(node.x, node.y, node.z + 1))))
         {
           up = true;
         }
+
         if (down && up)
         {
-          context.fillStyle = "limegreen";
+          context.fillStyle = upAndDownStairsColor;
         } else if (down) {
-          context.fillStyle = "dodgerblue";
+          context.fillStyle = downStairsColor;
         } else if (up) {
-          context.fillStyle = "gold";
+          context.fillStyle = upStairsColor;
         } else {
-          context.fillStyle = "white";
+          context.fillStyle = mazeColor;
         }
-        context.fillRect(cell.x * squareSize, cell.y * squareSize,
-          squareSize, squareSize);
-        if (cell.isSolution)
+
+        context.fillRect(node.x * nodeSize, node.y * nodeSize,
+          nodeSize, nodeSize);
+
+        // draw solution
+        if (node.isSolution)
         {
-          context.lineWidth = squareSize / 5;
-          context.strokeStyle = "blueviolet";
-          context.strokeRect(cell.x * squareSize + squareSize / 10,
-            cell.y * squareSize + squareSize / 10,
-            squareSize - squareSize / 5, squareSize - squareSize / 5);
+          context.lineWidth = nodeSize / 5;
+          context.strokeStyle = solutionColor;
+          context.strokeRect(node.x * nodeSize + nodeSize / 10,
+            node.y * nodeSize + nodeSize / 10,
+            nodeSize - nodeSize / 5, nodeSize - nodeSize / 5);
         }
       }
     });
-    if (!this.goal.isEqual(new Cell(-1, -1, -1)) && (this.goal.z === viewer))
+  }
+
+  drawPrincess()
+  {
+    if (!this.princess.isEqual(new Node(-1, -1, -1)) &&
+      (this.princess.z === viewer))
     {
-      context.fillStyle = "fuchsia";
-      context.fillRect(this.goal.x * squareSize, this.goal.y * squareSize,
-        squareSize, squareSize);
+      context.fillStyle = princessColor;
+      context.fillRect(this.princess.x * nodeSize, this.princess.y * nodeSize,
+        nodeSize, nodeSize);
     }
-    this.doors.forEach(function(cell) {
-      if (cell.z === viewer)
+  }
+
+  drawDoors()
+  {
+    this.doors.forEach(function(node) {
+      if (node.z === viewer)
       {
-        context.fillStyle = "black";
+        context.fillStyle = doorColor;
         context.beginPath();
-        context.arc(cell.x * squareSize + squareSize / 2,
-          cell.y * squareSize + squareSize / 3, squareSize / 4, 0,
+        context.arc(node.x * nodeSize + nodeSize / 2,
+          node.y * nodeSize + nodeSize / 3, nodeSize / 4, 0,
           2 * Math.PI, false);
         context.fill();
         context.beginPath();
-        context.moveTo(cell.x * squareSize + squareSize / 2,
-          cell.y * squareSize + squareSize / 6);
-        context.lineTo(cell.x * squareSize + squareSize / 4,
-          cell.y * squareSize + squareSize * 11 / 12);
-        context.lineTo(cell.x * squareSize + squareSize * 3 / 4,
-          cell.y * squareSize + squareSize * 11 / 12);
+        context.moveTo(node.x * nodeSize + nodeSize / 2,
+          node.y * nodeSize + nodeSize / 6);
+        context.lineTo(node.x * nodeSize + nodeSize / 4,
+          node.y * nodeSize + nodeSize * 11 / 12);
+        context.lineTo(node.x * nodeSize + nodeSize * 3 / 4,
+          node.y * nodeSize + nodeSize * 11 / 12);
         context.closePath();
         context.fill();
       }
     });
-    if (!this.key.isEqual(new Cell(-1, -1, -1)) && (this.key.z === viewer))
+  }
+
+  drawKey()
+  {
+    if (!this.key.isEqual(new Node(-1, -1, -1)) && (this.key.z === viewer))
     {
-      context.fillStyle = "gold";
+      context.fillStyle = keyColor;
       context.beginPath();
-      context.moveTo(this.key.x * squareSize + squareSize / 2,
-        this.key.y * squareSize + squareSize / 6);
-      context.lineTo(this.key.x * squareSize + squareSize / 6,
-        this.key.y * squareSize + squareSize / 2);
-      context.lineTo(this.key.x * squareSize + squareSize / 2,
-        this.key.y * squareSize + squareSize * 5 / 6);
-      context.lineTo(this.key.x * squareSize + squareSize * 5 / 6,
-        this.key.y * squareSize + squareSize / 2);
+      context.moveTo(this.key.x * nodeSize + nodeSize / 2,
+        this.key.y * nodeSize + nodeSize / 6);
+      context.lineTo(this.key.x * nodeSize + nodeSize / 6,
+        this.key.y * nodeSize + nodeSize / 2);
+      context.lineTo(this.key.x * nodeSize + nodeSize / 2,
+        this.key.y * nodeSize + nodeSize * 5 / 6);
+      context.lineTo(this.key.x * nodeSize + nodeSize * 5 / 6,
+        this.key.y * nodeSize + nodeSize / 2);
       context.closePath();
       context.fill();
-      context.lineWidth = squareSize / 5;
-      context.strokeStyle = "black";
+      context.lineWidth = nodeSize / 5;
+      context.strokeStyle = 'black';
       context.stroke();
     }
-    if (!this.player.isEqual(new Cell(-1, -1, -1)) &&
+  }
+
+  drawPlayer()
+  {
+    if (!this.player.isEqual(new Node(-1, -1, -1)) &&
       (this.player.z === viewer))
     {
-      context.fillStyle = "red";
+      context.fillStyle = playerColor;
       context.beginPath();
-      context.arc(this.player.x * squareSize + squareSize / 2,
-        this.player.y * squareSize + squareSize / 2, squareSize / 2, 0,
+      context.arc(this.player.x * nodeSize + nodeSize / 2,
+        this.player.y * nodeSize + nodeSize / 2, nodeSize / 2, 0,
         2 * Math.PI, false);
       context.fill();
     }
   }
 
+  draw()
+  {
+    this.drawMaze();
+    this.drawPrincess();
+    this.drawDoors();
+    this.drawKey();
+    this.drawPlayer();
+  }
+
+  /*
+    Move player and update the maze
+  */
   movePlayer(neighbour)
   {
     let lastPlayerPos = this.player;
     this.player = this.maze.find(element => element.isEqual(neighbour));
+
     if (this.doors.length > 0)
     {
+      // delete door if player has a key and is on a door
       if (this.doors[0].isEqual(this.player) && this.canUnlockDoor)
       {
         this.doors.splice(0, 1);
         this.canUnlockDoor = false;
+
+        // generate a new key if there are doors after the unlock
         if (this.doors.length > 0)
         {
           this.key = this.generateKey(this.player);
           this.keysPos.push(this.key);
         }
+
+      // if player is on a key, player can unlock 1 door and the key is removed
       } else if (this.player.isEqual(this.key)) {
         this.canUnlockDoor = true;
-        this.key = new Cell(-1, -1, -1);
+        this.key = new Node(-1, -1, -1);
       }
     }
+
+    // Did the player finish the maze ?
     this.checkMaze();
+
+    // update solution automatically after a player move
     if (this.solved)
     {
+      // if player follows the solution, delete node from the solution
       if (this.player.isSolution)
       {
         this.player.isSolution = false;
-        if (!this.maze.some(cell => cell.isSolution))
+
+        // if the previous step of the solution is reached, update the solution
+        // with a new goal
+        if (!this.maze.some(node => node.isSolution))
         {
           let goal;
           if (this.doors.length === 0)
           {
-            goal = this.goal;
+            goal = this.princess;
           } else {
             if (this.canUnlockDoor)
             {
@@ -441,34 +540,47 @@ class Game
             }
           }
           let solution = this.searchSolution(goal);
-          for (cell of solution)
+
+          // update maze
+          for (node of solution)
           {
-            if (this.maze.some(element => element.isEqual(cell)))
+            if (this.maze.some(element => element.isEqual(node)))
             {
               this.maze.find(element =>
-                element.isEqual(cell)).isSolution = true;
+                element.isEqual(node)).isSolution = true;
             }
           }
         }
+      // if player doesn't follow the solution, add a new node to the solution
       } else {
         lastPlayerPos.isSolution = true;
       }
     }
+
+    // viewer follow the player after a move if they aren't on the same floor
     viewer = this.player.z;
+
+    // fix a display bug when the maze isn't built and the player position
+    // isn't determined yet
     if (viewer < 0)
     {
       viewer = 0;
     }
-    levelText.innerHTML = "LEVEL ".concat(level.toString()).concat(" | FLOOR ")
+    levelText.innerHTML = 'LEVEL '.concat(level.toString()).concat(' | FLOOR ')
       .concat((viewer + 1).toString()).concat('/').concat(floor.toString())
-      .concat(" | KEYS = ").concat((this.canUnlockDoor ? 1 : 0).toString())
+      .concat(' | KEYS = ').concat((this.canUnlockDoor ? 1 : 0).toString())
       .concat('/1');
   }
 
+  /*
+    Return ordered path between player and goal
+  */
   searchSolution(goal)
   {
     let goalRoot = [];
     let playerRoot = [];
+
+    // path between goal and root maze
     let tmp = goal;
     goalRoot.push(tmp);
     while (!tmp.isEqual(tmp.parents))
@@ -476,6 +588,8 @@ class Game
       tmp = tmp.parents;
       goalRoot.push(tmp);
     }
+
+    // path between player and root maze
     tmp = this.player;
     playerRoot.push(tmp);
     while (!tmp.isEqual(tmp.parents))
@@ -483,27 +597,33 @@ class Game
       tmp = tmp.parents;
       playerRoot.push(tmp);
     }
-    let sameRoot = goalRoot.filter(cell => playerRoot.some(element =>
-      element.isEqual(cell)));
-    goalRoot = goalRoot.filter(cell => !sameRoot.some(element =>
-      element.isEqual(cell)));
-    playerRoot = playerRoot.filter(cell => !sameRoot.some(element =>
-      element.isEqual(cell)));
-    if (sameRoot.length > 0)
+
+    // filter same nodes between 2 paths
+    let sameNodes = goalRoot.filter(node => playerRoot.some(element =>
+      element.isEqual(node)));
+    goalRoot = goalRoot.filter(node => !sameNodes.some(element =>
+      element.isEqual(node)));
+    playerRoot = playerRoot.filter(node => !sameNodes.some(element =>
+      element.isEqual(node)));
+
+    // add the last same node to link the 2 paths
+    if (sameNodes.length > 0)
     {
-      if (!this.player.isEqual(sameRoot[0]))
-      {
-        playerRoot.push(sameRoot[0]);
-      }
+      playerRoot.push(sameNodes[0]);
     }
+
+    // ordered solution and filter player pos
     let solution = playerRoot.concat(goalRoot.reverse())
-      .filter(cell => !cell.isEqual(this.player));
+      .filter(node => !node.isEqual(this.player));
     return solution;
   }
 
+  /*
+    Check if player rescued the princess and generate a new level if it was.
+  */
   checkMaze()
   {
-    if (this.player.isEqual(this.goal))
+    if (this.player.isEqual(this.princess))
     {
       canvas.remove();
       levelText.remove();
@@ -569,7 +689,7 @@ function animate(now)
   if (dt < minFrameTime) return;
   animate._lastTime = now;
 
-  context.fillStyle = "black";
+  context.fillStyle = 'black';
   context.fillRect(0, 0, canvas.width, canvas.height);
   if (currentApp)
   {
@@ -601,17 +721,19 @@ function launchApp(app) {
 function setup()
 {
   levelText = document.createElement('H3');
-  levelText.innerHTML = "LEVEL ".concat(level.toString()).concat(" | FLOOR ")
+  levelText.innerHTML = 'LEVEL '.concat(level.toString()).concat(' | FLOOR ')
     .concat((viewer + 1).toString()).concat('/').concat(floor.toString())
-    .concat(" | KEYS = ").concat((this.canUnlockDoor ? 1 : 0).toString())
+    .concat(' | KEYS = ').concat((this.canUnlockDoor ? 1 : 0).toString())
     .concat('/1');
   document.body.appendChild(levelText);
+
   canvas = document.createElement('canvas');
-  canvas.width = width * squareSize;
-  canvas.height = height * squareSize;
-  canvas.style.border = "2px solid black";
-  canvas.color = "black";
+  canvas.width = width * nodeSize;
+  canvas.height = height * nodeSize;
+  canvas.style.border = '2px solid black';
+  canvas.color = 'black';
   document.body.appendChild(canvas);
+
   context = canvas.getContext('2d', {
     alpha: false
   });
@@ -629,8 +751,11 @@ window.addEventListener('keydown', function(event) {
   switch (event.key)
   {
     case 'ArrowLeft':
-      neighbour = new Cell(currentApp.player.x - 1, currentApp.player.y,
+      neighbour = new Node(currentApp.player.x - 1, currentApp.player.y,
         currentApp.player.z);
+
+      // check if player doesn't move on a wall, a locked door or outside the
+      // maze
       if (currentApp.maze.some(element => element.isEqual(neighbour))
         && (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
         currentApp.canUnlockDoor) && (currentApp.player.x > 0))
@@ -639,8 +764,11 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'ArrowUp':
-      neighbour = new Cell(currentApp.player.x, currentApp.player.y - 1,
+      neighbour = new Node(currentApp.player.x, currentApp.player.y - 1,
         currentApp.player.z);
+
+      // check if player doesn't move on a wall, a locked door or outside the
+      // maze
       if (currentApp.maze.some(element => element.isEqual(neighbour))
         && (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
         currentApp.canUnlockDoor) && (currentApp.player.y > 0))
@@ -649,8 +777,11 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'PageDown':
-      neighbour = new Cell(currentApp.player.x, currentApp.player.y,
+      neighbour = new Node(currentApp.player.x, currentApp.player.y,
         currentApp.player.z - 1);
+
+      // check if player doesn't move on a wall, a locked door or outside the
+      // maze
       if (currentApp.maze.some(element => element.isEqual(neighbour))
         && (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
         currentApp.canUnlockDoor) && (currentApp.player.z > 0))
@@ -659,8 +790,11 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'ArrowRight':
-      neighbour = new Cell(currentApp.player.x + 1, currentApp.player.y,
+      neighbour = new Node(currentApp.player.x + 1, currentApp.player.y,
         currentApp.player.z);
+
+      // check if player doesn't move on a wall, a locked door or outside the
+      // maze
       if (currentApp.maze.some(element => element.isEqual(neighbour))
         && (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
         currentApp.canUnlockDoor) && (currentApp.player.x < width - 1))
@@ -669,8 +803,11 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'ArrowDown':
-      neighbour = new Cell(currentApp.player.x, currentApp.player.y + 1,
+      neighbour = new Node(currentApp.player.x, currentApp.player.y + 1,
         currentApp.player.z);
+
+      // check if player doesn't move on a wall, a locked door or outside the
+      // maze
       if (currentApp.maze.some(element => element.isEqual(neighbour))
         && (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
         currentApp.canUnlockDoor) && (currentApp.player.y < height - 1))
@@ -679,8 +816,11 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'PageUp':
-      neighbour = new Cell(currentApp.player.x, currentApp.player.y,
+      neighbour = new Node(currentApp.player.x, currentApp.player.y,
         currentApp.player.z + 1);
+
+      // check if player doesn't move on a wall, a locked door or outside the
+      // maze
       if (currentApp.maze.some(element => element.isEqual(neighbour))
         && (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
         currentApp.canUnlockDoor) && (currentApp.player.z < floor - 1))
@@ -690,36 +830,60 @@ window.addEventListener('keydown', function(event) {
       break;
     case 'Shift':
       viewer += 1;
+
+      // fix a display bug when the maze isn't built and the player position
+      // isn't determined yet
       if (viewer === floor)
       {
         viewer = 0;
       }
-      levelText.innerHTML = "LEVEL ".concat(level.toString())
-        .concat(" | FLOOR ").concat((viewer + 1).toString()).concat('/')
-        .concat(floor.toString()).concat(" | KEYS = ")
+      levelText.innerHTML = 'LEVEL '.concat(level.toString())
+        .concat(' | FLOOR ').concat((viewer + 1).toString()).concat('/')
+        .concat(floor.toString()).concat(' | KEYS = ')
         .concat((currentApp.canUnlockDoor ? 1 : 0).toString()).concat('/1');
       break;
     case ' ':
       viewer -= 1;
+
+      // fix a display bug when the maze isn't built and the player position
+      // isn't determined yet
       if (viewer < 0)
       {
         viewer = floor - 1;
       }
-      levelText.innerHTML = "LEVEL ".concat(level.toString())
-        .concat(" | FLOOR ").concat((viewer + 1).toString()).concat('/')
-        .concat(floor.toString()).concat(" | KEYS = ")
+      levelText.innerHTML = 'LEVEL '.concat(level.toString())
+        .concat(' | FLOOR ').concat((viewer + 1).toString()).concat('/')
+        .concat(floor.toString()).concat(' | KEYS = ')
         .concat((currentApp.canUnlockDoor ? 1 : 0).toString()).concat('/1');
+      break;
+    case '+':
+      if (nodeSize < 50)
+      {
+        nodeSize += 5;
+        canvas.width = width * nodeSize;
+        canvas.height = height * nodeSize;
+      }
+      break;
+    case '-':
+      if (nodeSize > 10)
+      {
+        nodeSize -= 5;
+        canvas.width = width * nodeSize;
+        canvas.height = height * nodeSize;
+      }
       break;
     case 's':
     case 'S':
-      if (currentApp.walls.length === 0)
+      if (currentApp.built)
       {
         if (!currentApp.solved)
         {
+          // if the previous step of the solution is reached, update the
+          // solution with a new goal
           let goal;
           if (currentApp.doors.length === 0)
           {
-            goal = currentApp.goal;
+            goal = currentApp.princess;
           } else {
             if (currentApp.canUnlockDoor)
             {
@@ -730,12 +894,14 @@ window.addEventListener('keydown', function(event) {
           }
           let solution = currentApp.searchSolution(goal);
           currentApp.solved = true;
-          for (cell of solution)
+
+          // update the maze
+          for (node of solution)
           {
-            if (currentApp.maze.some(element => element.isEqual(cell)))
+            if (currentApp.maze.some(element => element.isEqual(node)))
             {
               currentApp.maze.find(element =>
-                element.isEqual(cell)).isSolution = true;
+                element.isEqual(node)).isSolution = true;
             }
           }
         }
