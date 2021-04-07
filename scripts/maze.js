@@ -32,6 +32,7 @@ const upAndDownStairsColor = 'limegreen';
 const doorColor = 'black';
 const keyColor = 'gold';
 const springColor = 'orange';
+const linkedSpringColor = 'crimson';
 
 // ------------------------------------
 // Node class
@@ -84,7 +85,7 @@ class Node
         element => element.isEqual(neighbour)));
   }
 
-  getSpringDest()
+  getLinkedSpring()
   {
     if (this.isSpring())
     {
@@ -93,7 +94,8 @@ class Node
           element => element.isEqual(neighbour)));
     } else {
       throw new Error(
-        'use GetSpringDest() Node method but this node is not a spring:', this);
+        'use GetLinkedSpring() Node method but this node isn\'t a spring:',
+        this);
     }
   }
 }
@@ -443,6 +445,20 @@ class Game
         this.player.y * nodeSize + nodeSize / 2, nodeSize / 2, 0,
         2 * Math.PI, false);
       context.fill();
+      if (this.player.isSpring())
+      {
+        let linkedSpring = this.player.getLinkedSpring();
+
+        // linked spring doesn't hide a part of a solution
+        if (!linkedSpring.isSolution)
+        {
+          context.lineWidth = nodeSize / 5;
+          context.strokeStyle = linkedSpringColor;
+          context.strokeRect(linkedSpring.x * nodeSize + nodeSize / 10,
+            linkedSpring.y * nodeSize + nodeSize / 10,
+            nodeSize - nodeSize / 5, nodeSize - nodeSize / 5);
+        }
+      }
     }
   }
 
@@ -817,7 +833,7 @@ window.addEventListener('keydown', function(event) {
     case ' ':
       if (currentApp.player.isSpring())
       {
-        neighbour = currentApp.player.getSpringDest();
+        neighbour = currentApp.player.getLinkedSpring();
         if (!currentApp.doors.some(door => door.isEqual(neighbour)) ||
           currentApp.canUnlockDoor)
         {
