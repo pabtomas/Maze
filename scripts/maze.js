@@ -18,7 +18,7 @@ let currentApp = null;
 let viewer = 0;
 let nodeSize = 20;
 
-const doorStep = 10;
+const doorStep = 30;
 const minFrameTime = 1;
 const springSpawn = 0.1;
 
