@@ -18,7 +18,7 @@ let currentApp = null;
 let viewer = 0;
 let nodeSize = 20;
 
-const doorStep = 30;
+const doorStep = 10;
 const minFrameTime = 1;
 const springSpawn = 0.1;
 
@@ -262,17 +262,17 @@ class Game
           .concat(floor.toString()).concat(' | KEYS = ')
           .concat((this.canUnlockDoor ? 1 : 0).toString()).concat('/1');
 
-        let solution = this.searchSolution(this.princess);
+        this.fullSolution = this.searchSolution(this.princess);
 
         // a new door can be placed every 'doorStep' nodes of the solution
-        for (let node of solution)
+        for (let node of this.fullSolution)
         {
           if ((Math.floor((node.weight + 1) / doorStep) * doorStep ===
             node.weight) && (node.weight != 0))
           {
             // if between the last added door and the possibly next door there
             // aren't new intersection, the possibly next door isn't added
-            if (!this.subtreeIsPath(node, solution))
+            if (!this.subtreeIsPath(node, this.fullSolution))
             {
               this.doors.push(node);
             }
@@ -280,7 +280,7 @@ class Game
         }
         if (this.doors.length > 0)
         {
-          this.key = this.generateKey(this.player);
+          this.key = this.generateKey();
 
           // player doesn't have to come back to a previous key position
           this.keysPos.push(this.key);
@@ -290,14 +290,20 @@ class Game
   }
 
   /*
-    Use a BFS to generate a key farthest from the root node
+    Use a BFS to generate a key farthest from the solution path
   */
-  generateKey(root)
+  generateKey()
   {
-    root.weight = 0;
-    let queue = [root];
+    let solution = [this.player].concat(this.fullSolution);
+    while (!solution[solution.length - 1].isEqual(this.doors[0]))
+    {
+      solution.pop();
+    }
+    solution.pop();
+
+    let queue = solution.slice();
     let currentNode;
-    let visited = [root];
+    let visited = solution.slice();
     while (queue.length > 0)
     {
       currentNode = queue.splice(0, 1)[0];
@@ -311,7 +317,6 @@ class Game
         }
       }
     }
-    let solution = this.searchSolution(this.princess);
 
     // a key can't be on a solution node, a node with more than 1 neighbour
     // and a previous key position
@@ -490,7 +495,7 @@ class Game
         // generate a new key if there are doors after the unlock
         if (this.doors.length > 0)
         {
-          this.key = this.generateKey(this.player);
+          this.key = this.generateKey();
           this.keysPos.push(this.key);
         }
 
