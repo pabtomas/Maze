@@ -252,10 +252,6 @@ class Game
         this.player = bfs(this.maze[0]);
         this.princess = bfs(this.player);
 
-        // player doesn't have to come back to the start of the maze to search
-        // a key
-        this.keysPos.push(this.player);
-
         viewer = this.player.z;
         levelText.innerHTML = 'LEVEL '.concat(level.toString())
           .concat(' | FLOOR ').concat((viewer + 1).toString()).concat('/')
@@ -278,6 +274,11 @@ class Game
             }
           }
         }
+
+        // adding starting position of the maze will be useful for key
+        // generation
+        this.fullSolution = [this.player].concat(this.fullSolution);
+
         if (this.doors.length > 0)
         {
           this.key = this.generateKey();
@@ -294,7 +295,7 @@ class Game
   */
   generateKey()
   {
-    let solution = [this.player].concat(this.fullSolution);
+    let solution = this.fullSolution.slice();
     while (!solution[solution.length - 1].isEqual(this.doors[0]))
     {
       solution.pop();
@@ -318,10 +319,9 @@ class Game
       }
     }
 
-    // a key can't be on a solution node, a node with more than 1 neighbour
-    // and a previous key position
+    // a key can't be on a node with more than 1 neighbour and a previous key
+    // position
     while ((visited[visited.length - 1].getNeighbourhood().length > 1) ||
-      solution.some(element => element.isEqual(visited[visited.length - 1])) ||
       this.keysPos.some(key => key.isEqual(visited[visited.length - 1])))
     {
       visited.pop();
