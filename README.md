@@ -20,11 +20,14 @@ Press the <i>Shift</i> and the <i>Control</i> keys to change the maze's floor.</
 
 This Maze is a <i>Springs Maze</i>. A <i>Springs Maze</i> is a 2D Maze.</br></br>
 The <i>Orange Squares</i> are <i>Springs</i>. A <i>Spring</i> is linked to another <i>Spring</i> (and only one).</br>
-The <i>Orange Squares</i> with <i>Red Borders</i> is the <i>Linked Spring</i> of the <i>Spring</i> where the <i>Player</i> is.</br>
+The <i>Orange Square</i> with <i>Red Borders</i> is the <i>Linked Spring</i> of the <i>Spring</i> where the <i>Player</i> is.</br>
 When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring</i>. The <i>Player</i> can use a <i>Spring</i> with the <i>Space</i> key.</br></br>
 Press the <i>+</i> and the <i>-</i> keys to zoom in and zoom out.</br>
 Maze has always a solution. Press the <i>S</i> key to see the solution.</br></br>
 To play game, type this in your terminal when you are in the <b>./Maze</b> repository:</br>
 ```sh
+mkdir public
+mkdir public/js
+tsc
 firefox index.html
 ```
