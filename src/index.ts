@@ -70,7 +70,7 @@ function animate()
     {
       builders.forEach(
         builder => builder.setBackup(builders[currentBuilder].getBackup()));
-      //currentBuilder = getRandomInt(Level.LENGTH);
+      currentBuilder = getRandomInt(Level.LENGTH);
     }
     builders[currentBuilder].init(maze);
     drawer.update(maze);
