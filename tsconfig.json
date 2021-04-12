@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "module": "commonjs",
+    "module": "amd",
     "lib": [
       "es2015",
       "dom"
     ],
-    "outDir": "public/js",
+    "outDir": "scripts/app",
     "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,

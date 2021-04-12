@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <title>Maze</title>
-    <script type="text/javascript" src="public/js/index.js"></script>
+    <script src="scripts/require.js"></script>
+    <script>
+        requirejs.config({
+            baseUrl: './scripts/app/'
+        });
+        requirejs(['index']);
+    </script>
   </head>
   <body>
   </body>
