@@ -70,7 +70,11 @@ function animate()
     {
       builders.forEach(
         builder => builder.setBackup(builders[currentBuilder].getBackup()));
-      currentBuilder = getRandomInt(Level.LENGTH);
+      ++currentBuilder;
+      if (currentBuilder === Level.LENGTH)
+      {
+        currentBuilder = 0;
+      }
     }
     builders[currentBuilder].init(maze);
     drawer.update(maze);
@@ -218,7 +222,7 @@ window.addEventListener('keydown', function(event) {
       break;
     case 's':
     case 'S':
-      if (maze.isBuilt())
+      if (maze.isBuilt() && !maze.isPlayerOnIce())
       {
         if (!maze.isSolved())
         {
