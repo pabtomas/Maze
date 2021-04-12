@@ -22,6 +22,15 @@ This Maze is a <i>Springs Maze</i>. A <i>Springs Maze</i> is a 2D Maze.</br></br
 The <i>Orange Squares</i> are <i>Springs</i>. A <i>Spring</i> is linked to another <i>Spring</i> (and only one).</br>
 The <i>Orange Square</i> with <i>Red Borders</i> is the <i>Linked Spring</i> of the <i>Spring</i> where the <i>Player</i> is.</br>
 When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring</i>. The <i>Player</i> can use a <i>Spring</i> with the <i>Space</i> key.</br></br>
+
+|<img src="/media/icemaze1.gif"/>|<img src="/media/icemaze2.gif"/>|
+|:------------:|:-------------:|
+|The <i>Player</i> skates until the next <i>White Square</i>|The <i>Player</i> bounces on <i>Walls</i> or <i>Maze Limits</i>|
+
+This Maze is an <i>Ice Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i>Ice Mazes</i>.</br></br>
+The <i>Cyan Squares</i> are <i>Ice</i>. When the <i>Player</i> is on it, he skates in the same direction until the next <i>White Square</i>.</br>
+If the <i>Player</i> meets a <i>Wall</i> or a <i>Maze Limit</i> before a <i>White Square</i>, he bounces on it.</br></br>
+
 Press the <i>+</i> and the <i>-</i> keys to zoom in and zoom out.</br>
 Maze has always a solution. Press the <i>S</i> key to see the solution.</br></br>
 To play game, type this in your terminal when you are in the <b>./Maze</b> repository:</br>
