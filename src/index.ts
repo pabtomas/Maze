@@ -205,14 +205,14 @@ window.addEventListener('keydown', function(event) {
     case '+':
       if (maze.getNodeSize() < 50)
       {
-        maze.decNodeSize();
+        maze.incNodeSize();
         drawer.update(maze);
       }
       break;
     case '-':
       if (maze.getNodeSize() > 10)
       {
-        maze.incNodeSize();
+        maze.decNodeSize();
         drawer.update(maze);
       }
       break;
