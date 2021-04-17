@@ -7,6 +7,8 @@ import { IceBuilder } from './icebuilder';
 import { Drawer } from './drawer';
 
 let animationLaunched: boolean = false;
+let lastTimeAnimation: number;
+const MIN_FRAME_TIME: number = 1000;
 
 let maze: Maze = new Maze();
 let currentBuilder = Level.STAIRS;
@@ -27,11 +29,10 @@ launchAnimation();
 // https://stackoverflow.com/questions/37476437/how-to-render-html5-canvas-within-a-loop
 // ------------------------------------
 
-function animate()
+function animate(now: number): void
 {
   requestAnimationFrame(animate);
 
-  drawer.clearCanvas();
   builders[currentBuilder].update(maze);
 
   let newPos: MazeNode = maze.getPlayer();
@@ -80,14 +81,32 @@ function animate()
     drawer.update(maze);
   }
 
+  if (!maze.isBuilt())
+  {
+    if (now - lastTimeAnimation < MIN_FRAME_TIME)
+    {
+      return;
+    }
+    lastTimeAnimation = now;
+  }
+
+  drawer.clearCanvas();
   drawer.draw(maze);
 }
 
 function launchAnimation(): void {
-  if (animationLaunched) return;
+  if (animationLaunched)
+  {
+    return;
+  }
   animationLaunched = true;
 
-  requestAnimationFrame(animate);
+  requestAnimationFrame(_launchAnimation);
+
+  function _launchAnimation(now: number): void {
+    lastTimeAnimation = now;
+    requestAnimationFrame(animate);
+  }
 }
 
 // ------------------------------------

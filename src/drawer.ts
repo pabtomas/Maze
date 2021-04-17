@@ -268,8 +268,10 @@ export class Drawer
   {
     text.innerHTML = 'LEVEL '.concat(maze.getLevel().toString())
       .concat(' | FLOOR ').concat((maze.getViewer() + 1).toString())
-      .concat('/').concat(maze.getFloor().toString()).concat(' | KEYS = ')
-      .concat((maze.canPlayerUnlockDoors() ? 1 : 0).toString()).concat('/1');
+      .concat('/').concat(maze.getFloor().toString()).concat(' | KEY = ')
+      .concat(maze.canPlayerUnlockDoors() ? '1' : '0').concat('/')
+      .concat((maze.getDoors().length > 0) || (maze.getKeys().length > 0) ?
+        '1' : '0');
   }
 
   draw(maze: Maze): void

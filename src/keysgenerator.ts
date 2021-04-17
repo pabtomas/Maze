@@ -2,8 +2,6 @@ import { ensure } from './util';
 import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
-export const DOOR_STEP: number = 30;
-
 export class KeysGenerator
 {
   constructor() {}
@@ -35,7 +33,8 @@ export class KeysGenerator
   }
 
   /*
-    Use a BFS to generate keys farthest from the solution path
+    Use a BFS to generate keys farthest from the solution path and previous
+    keys paths
   */
   generateKeys(maze: Maze, fullSolution: Array<MazeNode>): Array<MazeNode>
   {
@@ -45,14 +44,24 @@ export class KeysGenerator
     let currentNode: MazeNode;
     let visited: Array<MazeNode>;
 
+    let count = 0;
     while (keys.length < maze.getDoors().length)
     {
+      ++count;
       queue = fullSolution.slice();
       while (!queue[queue.length - 1].isEqual(doors[0]))
       {
         queue.pop();
       }
       queue.pop();
+
+      for (let key of keys)
+      {
+        let keyPath: Array<MazeNode> = maze.searchSolution(key);
+        queue = queue.concat(maze.searchSolution(key));
+      }
+      queue = [...new Set(queue)];
+
       visited = queue.slice();
       while (queue.length > 0)
       {
@@ -68,10 +77,8 @@ export class KeysGenerator
         }
       }
 
-      // a key can't be generated on a node with more than 1 neighbour or on the
-      // same node than a previous generated key
-      while ((visited[visited.length - 1].getNeighbourhood().length > 1) ||
-        keys.some(key => key.isEqual(visited[visited.length - 1])))
+      // a key can't be generated on a node with more than 1 neighbour
+      while ((visited[visited.length - 1].getNeighbourhood().length > 1))
       {
         visited.pop();
       }
@@ -83,4 +90,3 @@ export class KeysGenerator
     return keys;
   }
 }
-

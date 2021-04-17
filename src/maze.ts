@@ -100,6 +100,11 @@ export class Maze
     return this.nodes[index];
   }
 
+  isNode(n: MazeNode): boolean
+  {
+    return this.nodes.some(node => node.isEqual(n));
+  }
+
   getWalls(): Array<MazeNode>
   {
     return this.walls;
@@ -108,6 +113,11 @@ export class Maze
   getWall(index: number): MazeNode
   {
     return this.walls[index];
+  }
+
+  isWall(node: MazeNode): boolean
+  {
+    return this.walls.some(wall => wall.isEqual(node));
   }
 
   addWall(node: MazeNode): void
@@ -291,14 +301,13 @@ export class Maze
   addSpring(node1: MazeNode, node2: MazeNode): void
   {
     this.springs.set(node1, node2);
-    this.springs.set(node2, node1);
   }
 
   isSpring(node: MazeNode): boolean
   {
-    for (let spring of this.springs.keys())
+    for (let [key, value] of this.springs.entries())
     {
-      if (spring.isEqual(node))
+      if (key.isEqual(node) || value.isEqual(node))
       {
         return true;
       }
@@ -325,14 +334,24 @@ export class Maze
     this.ice.push(node);
   }
 
+  popIce(): void
+  {
+    this.ice.pop();
+  }
+
   getIce(): Array<MazeNode>
   {
     return this.ice;
   }
 
+  isIce(node: MazeNode): boolean
+  {
+    return this.ice.some(ice => ice.isEqual(node));
+  }
+
   isPlayerOnIce(): boolean
   {
-    return this.ice.some(node => node.isEqual(this.player));
+    return this.ice.some(ice => ice.isEqual(this.player));
   }
 
   getLastPlayerPos(): MazeNode
@@ -446,6 +465,7 @@ export class Maze
     {
       playerRoot.push(sameMazeNodes[0]);
     }
+
     // ordered solution
     let solution: Array<MazeNode> = playerRoot.concat(goalRoot.reverse());
 
@@ -463,8 +483,15 @@ export class Maze
         }
       }
     }
-
     solution = solution.filter(node => !node.isEqual(this.player));
     return solution;
+  }
+
+  reparentsWalls(newParents: MazeNode, walls: Array<MazeNode>): void
+  {
+    for (let wall of walls)
+    {
+      ensure(this.walls.find(w => w.isEqual(wall))).parents = newParents;
+    }
   }
 }

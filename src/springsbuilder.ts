@@ -1,6 +1,6 @@
 import { ensure, getRandomInt } from './util';
 import { FloorSaver, Builder } from './builder';
-import { KeysGenerator, DOOR_STEP } from './keysgenerator';
+import { KeysGenerator } from './keysgenerator';
 import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
@@ -15,6 +15,8 @@ export class SpringsBuilder extends FloorSaver implements Builder
 
   init(maze: Maze): void
   {
+    this.visited = [];
+
     maze.setFloor(1);
 
     maze.clear();
@@ -24,6 +26,8 @@ export class SpringsBuilder extends FloorSaver implements Builder
       getRandomInt(maze.getHeight()), getRandomInt(maze.getFloor()));
     let neighbours = this.computeNeighbours(maze, startingNode);
     maze.add(startingNode, neighbours);
+    this.visited.push(startingNode);
+    this.visited = this.visited.concat(neighbours);
   }
 
   update(maze: Maze): void
@@ -38,14 +42,17 @@ export class SpringsBuilder extends FloorSaver implements Builder
       if (!maze.isSpring(maze.getNode(maze.getNodes().length - 1)) &&
         (Math.random() < SPRING_SPAWN))
       {
-        let newSpring: MazeNode;
-        do {
-          // spring levels have only one floor
-          newSpring = new MazeNode(getRandomInt(maze.getWidth()),
-            getRandomInt(maze.getHeight()), 0);
-        } while (maze.getNodes().some(node => node.isEqual(newSpring)))
-        maze.addWall(newSpring);
-        nodeIndex = maze.getWalls().length - 1;
+        // spring levels have only one floor
+        let newSpring: MazeNode = new MazeNode(getRandomInt(maze.getWidth()),
+          getRandomInt(maze.getHeight()), 0);
+        if (!maze.isWall(newSpring) && !maze.isNode(newSpring))
+        {
+          maze.addWall(newSpring);
+          nodeIndex = maze.getWalls().length - 1;
+          this.visited.push(newSpring);
+        } else {
+          return;
+        }
       } else {
         // randomized the Prim algorithm.
         nodeIndex = getRandomInt(maze.getWalls().length);
@@ -55,12 +62,13 @@ export class SpringsBuilder extends FloorSaver implements Builder
 
       // if a node is not already in the maze and if it has 1 neighbour, it
       // is added to the maze.
-      if (!maze.getNodes().some(node => node.isEqual(currentNode))
-        && (this.neighboursInMaze(maze, currentNode) < 2))
+      if (!maze.isNode(currentNode) &&
+        (this.neighboursInMaze(maze, currentNode) < 2))
       {
         this.determineParents(maze, currentNode);
         let neighbours = this.computeNeighbours(maze, currentNode);
         maze.add(currentNode, neighbours);
+        this.visited = this.visited.concat(neighbours);
       }
       maze.removeWall(nodeIndex);
 
@@ -79,10 +87,12 @@ export class SpringsBuilder extends FloorSaver implements Builder
         let fullSolution: Array<MazeNode> =
           maze.searchSolution(maze.getPrincess());
 
-        // a new door can be placed every 'DOOR_STEP' nodes of the solution
+        let doorStep: number = 30;
+
+        // a new door can be placed every 'doorStep' nodes of the solution
         for (let node of fullSolution)
         {
-          if ((Math.floor((node.weight + 1) / DOOR_STEP) * DOOR_STEP ===
+          if ((Math.floor((node.weight + 1) / doorStep) * doorStep ===
             node.weight) && (node.weight != 0))
           {
             // if between the last added door and the possibly next door there
@@ -115,11 +125,12 @@ export class SpringsBuilder extends FloorSaver implements Builder
 
   computeNeighbours(maze: Maze, node: MazeNode): Array<MazeNode>
   {
+    let visited = this.visited;
     let neighbours: Array<MazeNode> = node.possibleNeighbourhood().filter(
       neighbour => (neighbour.x > -1) && (neighbour.x < maze.getWidth()) &&
         (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
         (neighbour.z > -1) && (neighbour.z < maze.getFloor()) &&
-        !maze.getNodes().some(element => element.isEqual(neighbour)));
+        !maze.isNode(neighbour) && !visited.some(v => v.isEqual(neighbour)));
     return neighbours;
   }
 
