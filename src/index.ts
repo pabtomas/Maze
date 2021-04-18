@@ -8,6 +8,7 @@ import { Drawer } from './drawer';
 
 let animationLaunched: boolean = false;
 let lastTimeAnimation: number;
+let loadMazeFaster: boolean = false;
 const MIN_FRAME_TIME: number = 1000;
 
 let maze: Maze = new Maze();
@@ -81,7 +82,7 @@ function animate(now: number): void
     drawer.update(maze);
   }
 
-  if (!maze.isBuilt())
+  if (!maze.isBuilt() && loadMazeFaster)
   {
     if (now - lastTimeAnimation < MIN_FRAME_TIME)
     {
@@ -114,6 +115,7 @@ function launchAnimation(): void {
 window.addEventListener('keydown', function(event) {
   let neighbour: MazeNode;
   let player = maze.getPlayer();
+  drawer.disableDrawingUnderMouse();
   switch (event.key)
   {
     case 'ArrowLeft':
@@ -226,18 +228,13 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case '+':
-      if (maze.getNodeSize() < 50)
-      {
-        maze.incNodeSize();
-        drawer.update(maze);
-      }
+      drawer.incNodeSize(maze);
       break;
     case '-':
-      if (maze.getNodeSize() > 10)
-      {
-        maze.decNodeSize();
-        drawer.update(maze);
-      }
+      drawer.decNodeSize(maze);
+      break;
+    case 'Enter':
+      loadMazeFaster = !loadMazeFaster;
       break;
     case 's':
     case 'S':

@@ -12,7 +12,6 @@ export class Maze
   private newFloorLevel: number;
 
   private viewer: number;
-  private nodeSize: number;
 
   private nodes: Array<MazeNode>;
   private walls: Array<MazeNode>;
@@ -42,7 +41,6 @@ export class Maze
     this.newFloorLevel = 10;
 
     this.viewer = 0;
-    this.nodeSize = 20;
 
     this.nodes = [];
     this.walls = [];
@@ -233,21 +231,6 @@ export class Maze
   setKeys(keys: Array<MazeNode>): void
   {
     this.keys = keys;
-  }
-
-  getNodeSize(): number
-  {
-    return this.nodeSize;
-  }
-
-  incNodeSize(): void
-  {
-    this.nodeSize += 5;
-  }
-
-  decNodeSize(): void
-  {
-    this.nodeSize -= 5;
   }
 
   getViewer(): number

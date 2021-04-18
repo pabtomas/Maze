@@ -18,11 +18,40 @@ let canvas: HTMLCanvasElement;
 let text: HTMLHeadingElement;
 let context: CanvasRenderingContext2D;
 
+let eventOccured: boolean = true;
+let mouseX: number = -1;
+let mouseY: number = -1;
+let time: Date = new Date();
+
 export class Drawer
 {
+  private nodeSize: number;
+
   constructor(maze: Maze)
   {
+    this.nodeSize = 20;
     this.setup(maze);
+    let nodeSize: number = this.nodeSize;
+
+    document.addEventListener('mousemove', function(event: MouseEvent)
+    {
+      event.preventDefault();
+      event.stopPropagation();
+
+      eventOccured = false;
+
+      let oldXNode: number = Math.floor(mouseX / nodeSize);
+      let oldYNode: number = Math.floor(mouseY / nodeSize);
+      mouseX = event.clientX - canvas.offsetLeft + window.scrollX;
+      mouseY = event.clientY - canvas.offsetTop + window.scrollY;
+      let newXNode: number = Math.floor(mouseX / nodeSize);
+      let newYNode: number = Math.floor(mouseY / nodeSize);
+
+      if ((oldXNode !== newXNode) || (oldYNode !== newYNode))
+      {
+        time = new Date();
+      }
+    });
   }
 
   update(maze: Maze): void
@@ -30,6 +59,11 @@ export class Drawer
     text.remove();
     canvas.remove();
     this.setup(maze);
+  }
+
+  disableDrawingUnderMouse(): void
+  {
+    eventOccured = true;
   }
 
   clearCanvas(): void
@@ -45,8 +79,8 @@ export class Drawer
     document.body.appendChild(text);
 
     canvas = document.createElement('canvas') as HTMLCanvasElement;
-    canvas.width = maze.getWidth() * maze.getNodeSize();
-    canvas.height = maze.getHeight() * maze.getNodeSize();
+    canvas.width = maze.getWidth() * this.nodeSize;
+    canvas.height = maze.getHeight() * this.nodeSize;
     canvas.style.border = '2px solid black';
     canvas.style.color = 'black';
     document.body.appendChild(canvas);
@@ -56,9 +90,27 @@ export class Drawer
     }) as CanvasRenderingContext2D;
   }
 
+  incNodeSize(maze: Maze): void
+  {
+    if (this.nodeSize < 50)
+    {
+      this.nodeSize += 5;
+      this.update(maze);
+    }
+  }
+
+  decNodeSize(maze: Maze): void
+  {
+    if (this.nodeSize > 10)
+    {
+      this.nodeSize -= 5;
+      this.update(maze);
+    }
+  }
+
   drawMaze(maze: Maze): void
   {
-    let nodeSize: number = maze.getNodeSize();
+    let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
     maze.getNodes().forEach(function(node) {
       if (node.z === viewer)
@@ -103,7 +155,7 @@ export class Drawer
 
   drawIce(maze: Maze): void
   {
-    let nodeSize: number = maze.getNodeSize();
+    let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
     maze.getIce().forEach(function(node) {
       if (node.z === viewer)
@@ -117,15 +169,14 @@ export class Drawer
 
   drawPrincess(maze: Maze): void
   {
-    let nodeSize: number = maze.getNodeSize();
     let princess: MazeNode = maze.getPrincess();
     let viewer: number = maze.getViewer();
     if (!princess.isEqual(new MazeNode(-1, -1, -1)) &&
       (princess.z === viewer))
     {
       context.fillStyle = PRINCESS_COLOR;
-      context.fillRect(princess.x * nodeSize,
-        princess.y * nodeSize, nodeSize, nodeSize);
+      context.fillRect(princess.x * this.nodeSize,
+        princess.y * this.nodeSize, this.nodeSize, this.nodeSize);
     }
   }
 
@@ -133,20 +184,19 @@ export class Drawer
   {
     if (maze.isSpring(maze.getPlayer()))
     {
-      let nodeSize: number = maze.getNodeSize();
       let linkedSpring: MazeNode = maze.getLinkedSpring(maze.getPlayer());
 
-      context.lineWidth = nodeSize / 5;
+      context.lineWidth = this.nodeSize / 5;
       context.strokeStyle = LINKEDSPRING_COLOR;
-      context.strokeRect(linkedSpring.x * nodeSize + nodeSize / 10,
-        linkedSpring.y * nodeSize + nodeSize / 10,
-        nodeSize - nodeSize / 5, nodeSize - nodeSize / 5);
+      context.strokeRect(linkedSpring.x * this.nodeSize + this.nodeSize / 10,
+        linkedSpring.y * this.nodeSize + this.nodeSize / 10,
+        this.nodeSize - this.nodeSize / 5, this.nodeSize - this.nodeSize / 5);
     }
   }
 
   drawDoors(maze: Maze): void
   {
-    let nodeSize: number = maze.getNodeSize();
+    let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
     maze.getDoors().forEach(function(node) {
       if (node.z === viewer)
@@ -154,16 +204,32 @@ export class Drawer
         context.fillStyle = DOOR_COLOR;
         context.beginPath();
         context.arc(node.x * nodeSize + nodeSize / 2,
-          node.y * nodeSize + nodeSize / 3, nodeSize / 4, 0,
+          node.y * nodeSize + nodeSize / 3, nodeSize / 5, 0,
           2 * Math.PI, false);
+        context.closePath();
         context.fill();
+
+        context.lineWidth = nodeSize / 10;
+        context.strokeStyle = 'white';
+        context.stroke();
+
         context.beginPath();
         context.moveTo(node.x * nodeSize + nodeSize / 2,
           node.y * nodeSize + nodeSize / 6);
         context.lineTo(node.x * nodeSize + nodeSize / 4,
-          node.y * nodeSize + nodeSize * 11 / 12);
+          node.y * nodeSize + nodeSize * 5 / 6);
         context.lineTo(node.x * nodeSize + nodeSize * 3 / 4,
-          node.y * nodeSize + nodeSize * 11 / 12);
+          node.y * nodeSize + nodeSize * 5 / 6);
+        context.closePath();
+        context.fill();
+
+        context.lineWidth = nodeSize / 20;
+        context.stroke();
+
+        context.beginPath();
+        context.arc(node.x * nodeSize + nodeSize / 2,
+          node.y * nodeSize + nodeSize / 3, nodeSize / 5, 0,
+          2 * Math.PI, false);
         context.closePath();
         context.fill();
       }
@@ -174,24 +240,23 @@ export class Drawer
   {
     if (maze.getKeys().length > 0)
     {
-      let nodeSize: number = maze.getNodeSize();
       let viewer: number = maze.getViewer();
       let key: MazeNode = maze.getKey();
       if (!maze.canPlayerUnlockDoors() && (key.z === viewer))
       {
         context.fillStyle = KEY_COLOR;
         context.beginPath();
-        context.moveTo(key.x * nodeSize + nodeSize / 2,
-          key.y * nodeSize + nodeSize / 6);
-        context.lineTo(key.x * nodeSize + nodeSize / 6,
-          key.y * nodeSize + nodeSize / 2);
-        context.lineTo(key.x * nodeSize + nodeSize / 2,
-          key.y * nodeSize + nodeSize * 5 / 6);
-        context.lineTo(key.x * nodeSize + nodeSize * 5 / 6,
-          key.y * nodeSize + nodeSize / 2);
+        context.moveTo(key.x * this.nodeSize + this.nodeSize / 2,
+          key.y * this.nodeSize + this.nodeSize / 6);
+        context.lineTo(key.x * this.nodeSize + this.nodeSize / 6,
+          key.y * this.nodeSize + this.nodeSize / 2);
+        context.lineTo(key.x * this.nodeSize + this.nodeSize / 2,
+          key.y * this.nodeSize + this.nodeSize * 5 / 6);
+        context.lineTo(key.x * this.nodeSize + this.nodeSize * 5 / 6,
+          key.y * this.nodeSize + this.nodeSize / 2);
         context.closePath();
         context.fill();
-        context.lineWidth = nodeSize / 5;
+        context.lineWidth = this.nodeSize / 5;
         context.strokeStyle = 'black';
         context.stroke();
       }
@@ -200,7 +265,6 @@ export class Drawer
 
   drawPlayer(maze: Maze): void
   {
-    let nodeSize: number = maze.getNodeSize();
     let player: MazeNode = maze.getPlayer();
     let viewer: number = maze.getViewer();
     if (!player.isEqual(new MazeNode(-1, -1, -1)) &&
@@ -208,8 +272,8 @@ export class Drawer
     {
       context.fillStyle = PLAYER_COLOR;
       context.beginPath();
-      context.arc(player.x * nodeSize + nodeSize / 2,
-        player.y * nodeSize + nodeSize / 2, nodeSize / 2.5, 0,
+      context.arc(player.x * this.nodeSize + this.nodeSize / 2,
+        player.y * this.nodeSize + this.nodeSize / 2, this.nodeSize / 2.5, 0,
         2 * Math.PI, false);
       context.fill();
     }
@@ -219,7 +283,7 @@ export class Drawer
   {
     if (maze.isSolved())
     {
-      let nodeSize: number = maze.getNodeSize();
+      let nodeSize: number = this.nodeSize;
       let player: MazeNode = maze.getPlayer();
       let viewer: number = maze.getViewer();
       let solution: Array<MazeNode> = maze.getSolution();
@@ -274,12 +338,51 @@ export class Drawer
         '1' : '0');
   }
 
+  drawSpringUnderMouse(maze: Maze): void
+  {
+    if (!eventOccured)
+    {
+      let node: MazeNode = new MazeNode(Math.floor(mouseX / this.nodeSize),
+        Math.floor(mouseY / this.nodeSize), maze.getViewer());
+      if (maze.isSpring(node))
+      {
+        let linked: MazeNode = maze.getLinkedSpring(node);
+        context.lineWidth = this.nodeSize / 5;
+        let elapsedTime: number = new Date().getTime() - time.getTime();
+        if (elapsedTime > 1000)
+        {
+          time = new Date();
+          elapsedTime = 0;
+        }
+        let red: number = (elapsedTime < 500) ?
+          220 + (35 * elapsedTime / 500) :
+          255 - 35 * ((elapsedTime - 500) / 500);
+        let green: number = (elapsedTime < 500) ?
+          20 + (145 * elapsedTime / 500) :
+          165 - 145 * ((elapsedTime - 500) / 500);
+        let blue: number = (elapsedTime < 500) ?
+          60 - (60 * elapsedTime / 500) :
+          60 * ((elapsedTime - 500) / 500);
+        context.strokeStyle = 'rgb('.concat(red.toString()).concat(', ')
+          .concat(green.toString()).concat(', ')
+          .concat(blue.toString()).concat(')');
+        context.strokeRect(node.x * this.nodeSize + this.nodeSize / 10,
+          node.y * this.nodeSize + this.nodeSize / 10,
+          this.nodeSize - this.nodeSize / 5, this.nodeSize - this.nodeSize / 5);
+        context.strokeRect(linked.x * this.nodeSize + this.nodeSize / 10,
+          linked.y * this.nodeSize + this.nodeSize / 10,
+          this.nodeSize - this.nodeSize / 5, this.nodeSize - this.nodeSize / 5);
+      }
+    }
+  }
+
   draw(maze: Maze): void
   {
     this.drawMaze(maze);
     this.drawIce(maze);
     this.drawPrincess(maze);
     this.drawLinkedSpring(maze);
+    this.drawSpringUnderMouse(maze);
     this.drawSolution(maze);
     this.drawDoors(maze);
     this.drawKey(maze);
