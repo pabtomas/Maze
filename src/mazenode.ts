@@ -132,3 +132,11 @@ export function bfs(root: MazeNode): MazeNode
   }
   return visited[visited.length - 1];
 }
+
+export function distBetween(node1: MazeNode, node2: MazeNode): number
+{
+  let horizontalDist = node2.x - node1.x;
+  let verticalDist = node2.y - node1.y;
+  return Math.sqrt(horizontalDist * horizontalDist +
+    verticalDist * verticalDist);
+}

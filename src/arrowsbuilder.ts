@@ -78,8 +78,8 @@ export class ArrowsBuilder extends FloorSaver implements Builder
         .forEach(arrow => maze.addArrow(arrow));
 
       // order priority: filter roads before adding new roads
-      this.roads.forEach((setOfRoads, index) =>
-        this.roads[index] = setOfRoads.filter(
+      this.roads.forEach((setOfRoads, index, roads) =>
+        roads[index] = setOfRoads.filter(
         road => !this.isConcurrentRoad(maze, road, currentRoad)));
       this.computeRoads(maze, currentNode).forEach(
         road => this.roads[road.length - 2].push(road));

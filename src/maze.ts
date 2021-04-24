@@ -1,5 +1,5 @@
 import { ensure } from './util';
-import { MazeNode } from './mazenode';
+import { MazeNode, distBetween } from './mazenode';
 
 export class Maze
 {
@@ -389,32 +389,28 @@ export class Maze
     // update solution automatically after a player move
     if (this.solved)
     {
-      // if player follows the solution, delete node from the solution
-      if (this.solution[0].isEqual(this.player))
+      if (this.ice.length === 0)
       {
-        this.solution.splice(0, 1);
-
-        // if the previous step of the solution is reached, update the solution
-        // with a new goal
-        if (this.solution.length === 0)
+        let goal: MazeNode;
+        if (this.doors.length === 0)
         {
-          let goal: MazeNode;
-          if (this.doors.length === 0)
+          goal = this.princess;
+        } else {
+          if (this.canPlayerUnlockDoors())
           {
-            goal = this.princess;
+            goal = this.doors[0];
           } else {
-            if (this.canPlayerUnlockDoors())
-            {
-              goal = this.doors[0];
-            } else {
-              goal = this.keys[0];
-            }
+            goal = this.keys[0];
           }
-          this.solution = this.searchSolution(goal);
         }
-      // if player doesn't follow the solution, add a new node to the solution
+        this.solution = this.searchSolution(goal);
       } else {
-        this.solution = [this.lastPlayerPos].concat(this.solution);
+        if (this.solution[0].isEqual(this.player))
+        {
+          this.solution.splice(0, 1);
+        } else {
+          this.solution = [this.lastPlayerPos].concat(this.solution);
+        }
       }
     }
   }
@@ -476,6 +472,7 @@ export class Maze
         }
       }
     }
+
     solution = solution.filter(node => !node.isEqual(this.player));
     return solution;
   }

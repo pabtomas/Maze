@@ -13,7 +13,7 @@ let loadMazeFaster: boolean = false;
 const MIN_FRAME_TIME: number = 1000;
 
 let maze: Maze = new Maze();
-let currentBuilder = Level.ARROWS; //Level.STAIRS;
+let currentBuilder = Level.STAIRS;
 let builders: Array<StairsBuilder | SpringsBuilder | IceBuilder |
   ArrowsBuilder > = [
     new StairsBuilder(),
@@ -66,7 +66,7 @@ function skatingAnimation(maze: Maze): void
   }
 }
 
-function displaceAnimation(maze: Maze): void
+function displacementAnimation(maze: Maze): void
 {
   if (maze.isPlayerOnArrow() &&
     (Date.now() - maze.getTimeLastPlayerMove() > 100))
@@ -90,11 +90,11 @@ function buildNewLevel(maze: Maze): void
     {
       builders.forEach(
         builder => builder.setBackup(builders[currentBuilder].getBackup()));
-      /*++currentBuilder;
+      ++currentBuilder;
       if (currentBuilder === Level.LENGTH)
       {
         currentBuilder = 0;
-      }*/
+      }
     }
     builders[currentBuilder].init(maze);
     drawer.update(maze);
@@ -108,7 +108,7 @@ function animate(now: number): void
   builders[currentBuilder].update(maze);
 
   skatingAnimation(maze);
-  displaceAnimation(maze);
+  displacementAnimation(maze);
 
   buildNewLevel(maze);
 

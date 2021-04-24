@@ -75,8 +75,8 @@ export class IceBuilder extends FloorSaver implements Builder
           maze.addIce(node);
           if (this.walls.some(wall => wall.isEqual(node)))
           {
-            this.walls.splice(this.walls.indexOf(
-              ensure(this.walls.find(element => element.isEqual(node)))), 1);
+            this.walls.splice(this.walls.findIndex(
+              element => element.isEqual(node)), 1);
           }
         }
 
@@ -95,8 +95,8 @@ export class IceBuilder extends FloorSaver implements Builder
         }
       }
 
-      this.walls.splice(this.walls.indexOf(
-        ensure(this.walls.find(element => element.isEqual(currentNode)))), 1);
+      this.walls.splice(this.walls.findIndex(
+        element => element.isEqual(currentNode)), 1);
 
     // after the maze is built, player and princess are added
     } else {
@@ -261,8 +261,7 @@ export class IceBuilder extends FloorSaver implements Builder
 
     // gives old parents for walls
     walls = walls.filter(node => this.walls.some(wall => wall.isEqual(node)))
-      .map(wall => this.walls[this.walls.indexOf(
-        ensure(this.walls.find(w => w.isEqual(wall))))]);
+      .map(wall => this.walls[this.walls.findIndex(w => w.isEqual(wall))]);
 
     // filter walls to reparents
     walls = walls.filter(w =>

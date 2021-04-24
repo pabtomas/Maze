@@ -1,4 +1,3 @@
-import { ensure } from './util';
 import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
@@ -12,8 +11,7 @@ export class KeysGenerator
     let index: number = 0;
     if (doors.length > 0)
     {
-      index = solution.indexOf(ensure(solution.find(node =>
-        node.isEqual(doors[doors.length - 1]))));
+      index = solution.findIndex(node => node.isEqual(doors[doors.length - 1]));
     }
     let res: boolean = false;
     let currentNode: MazeNode = solution[index];
