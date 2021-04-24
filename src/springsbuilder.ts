@@ -8,14 +8,18 @@ const SPRING_SPAWN: number = 0.1;
 
 export class SpringsBuilder extends FloorSaver implements Builder
 {
+  private walls: Array<MazeNode>;
+
   constructor()
   {
     super();
+    this.walls = [];
   }
 
   init(maze: Maze): void
   {
     this.visited = [];
+    this.walls = [];
 
     maze.setFloor(1);
 
@@ -25,7 +29,8 @@ export class SpringsBuilder extends FloorSaver implements Builder
     let startingNode = new MazeNode(getRandomInt(maze.getWidth()),
       getRandomInt(maze.getHeight()), getRandomInt(maze.getFloor()));
     let neighbours = this.computeNeighbours(maze, startingNode);
-    maze.add(startingNode, neighbours);
+    maze.addNode(startingNode);
+    this.walls = this.walls.concat(neighbours);
     this.visited.push(startingNode);
     this.visited = this.visited.concat(neighbours);
   }
@@ -33,7 +38,7 @@ export class SpringsBuilder extends FloorSaver implements Builder
   update(maze: Maze): void
   {
     // maze is built if each node is visited
-    if (maze.getWalls().length > 0)
+    if (this.walls.length > 0)
     {
       let nodeIndex: number;
 
@@ -45,20 +50,21 @@ export class SpringsBuilder extends FloorSaver implements Builder
         // spring levels have only one floor
         let newSpring: MazeNode = new MazeNode(getRandomInt(maze.getWidth()),
           getRandomInt(maze.getHeight()), 0);
-        if (!maze.isWall(newSpring) && !maze.isNode(newSpring))
+        if (!this.walls.some(wall => wall.isEqual(newSpring)) &&
+          !maze.isNode(newSpring))
         {
-          maze.addWall(newSpring);
-          nodeIndex = maze.getWalls().length - 1;
+          this.walls.push(newSpring);
+          nodeIndex = this.walls.length - 1;
           this.visited.push(newSpring);
         } else {
           return;
         }
       } else {
         // randomized the Prim algorithm.
-        nodeIndex = getRandomInt(maze.getWalls().length);
+        nodeIndex = getRandomInt(this.walls.length);
       }
 
-      let currentNode: MazeNode = maze.getWall(nodeIndex);
+      let currentNode: MazeNode = this.walls[nodeIndex];
 
       // if a node is not already in the maze and if it has 1 neighbour, it
       // is added to the maze.
@@ -67,10 +73,11 @@ export class SpringsBuilder extends FloorSaver implements Builder
       {
         this.determineParents(maze, currentNode);
         let neighbours = this.computeNeighbours(maze, currentNode);
-        maze.add(currentNode, neighbours);
+        maze.addNode(currentNode);
+        this.walls = this.walls.concat(neighbours);
         this.visited = this.visited.concat(neighbours);
       }
-      maze.removeWall(nodeIndex);
+      this.walls.splice(nodeIndex, 1);
 
     // after the maze is built, player, princess, doors and key are added
     } else {
@@ -118,18 +125,16 @@ export class SpringsBuilder extends FloorSaver implements Builder
 
   neighboursInMaze(maze: Maze, node: MazeNode): number
   {
-    return maze.getNodes().filter(
-      element => element.possibleNeighbourhood().some(
-        neighbour => neighbour.isEqual(node))).length;
+    return node.possible2DNeighbourhood().filter(
+      neighbour => maze.isNode(neighbour)).length;
   }
 
   computeNeighbours(maze: Maze, node: MazeNode): Array<MazeNode>
   {
     let visited = this.visited;
-    let neighbours: Array<MazeNode> = node.possibleNeighbourhood().filter(
+    let neighbours: Array<MazeNode> = node.possible2DNeighbourhood().filter(
       neighbour => (neighbour.x > -1) && (neighbour.x < maze.getWidth()) &&
         (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-        (neighbour.z > -1) && (neighbour.z < maze.getFloor()) &&
         !maze.isNode(neighbour) && !visited.some(v => v.isEqual(neighbour)));
     return neighbours;
   }
@@ -138,7 +143,7 @@ export class SpringsBuilder extends FloorSaver implements Builder
   {
     if (this.neighboursInMaze(maze, node) === 1)
     {
-      let neighbours: Array<MazeNode> = node.possibleNeighbourhood();
+      let neighbours: Array<MazeNode> = node.possible2DNeighbourhood();
       let parents: MazeNode = ensure(maze.getNodes().find(
         element => neighbours.some(neighbour => element.isEqual(neighbour))));
       node.parents = parents;

@@ -6,16 +6,19 @@ import { Maze } from './maze';
 export class IceBuilder extends FloorSaver implements Builder
 {
   private maxDist: number;
+  private walls: Array<MazeNode>;
 
   constructor()
   {
     super();
     this.maxDist = 0;
+    this.walls = [];
   }
 
   init(maze: Maze): void
   {
     this.visited = [];
+    this.walls = [];
 
     maze.setFloor(1);
 
@@ -27,7 +30,8 @@ export class IceBuilder extends FloorSaver implements Builder
     let startingNode = new MazeNode(getRandomInt(maze.getWidth()),
       getRandomInt(maze.getHeight()), getRandomInt(maze.getFloor()));
     let neighbours = this.computeNeighbours(maze, startingNode);
-    maze.add(startingNode, neighbours);
+    maze.addNode(startingNode);
+    this.walls = this.walls.concat(neighbours);
     this.visited.push(startingNode);
     this.visited = this.visited.concat(neighbours);
   }
@@ -35,7 +39,7 @@ export class IceBuilder extends FloorSaver implements Builder
   update(maze: Maze): void
   {
     // maze is built if each node is visited
-    if (maze.getWalls().length > 0)
+    if (this.walls.length > 0)
     {
       let max: number = this.maxDist;
       let maxDistWalls: Array<MazeNode> = [];
@@ -43,10 +47,9 @@ export class IceBuilder extends FloorSaver implements Builder
       // filter possible nodes to maximal distance
       while (maxDistWalls.length === 0)
       {
-        maxDistWalls = maze.getWalls()
-          .filter(wall => {
-            return wall.between(wall.parents).length <= max;
-          });
+        maxDistWalls = this.walls.filter(wall => {
+          return wall.between(wall.parents).length <= max;
+        });
         if (maxDistWalls.length === 0)
         {
           ++max;
@@ -70,26 +73,30 @@ export class IceBuilder extends FloorSaver implements Builder
         for (let node of iceNodes)
         {
           maze.addIce(node);
-          if (maze.isWall(node))
+          if (this.walls.some(wall => wall.isEqual(node)))
           {
-            maze.removeWall(maze.getWalls().indexOf(
-              ensure(maze.getWalls().find(element => element.isEqual(node)))));
+            this.walls.splice(this.walls.indexOf(
+              ensure(this.walls.find(element => element.isEqual(node)))), 1);
           }
         }
 
         let walls: Array<MazeNode> = this.computeNeighbours(maze, currentNode);
 
-        maze.add(currentNode, walls);
+        maze.addNode(currentNode);
+        this.walls = this.walls.concat(walls);
         currentNode.parents.children.push(currentNode);
 
         // it doesn't compute a path for a node if it was already computed
         this.visited = this.visited.concat(walls);
-        maze.reparentsWalls(currentNode,
-          this.wallsToReparents(currentNode, maze));
+
+        for (let wall of this.wallsToReparents(currentNode, maze))
+        {
+          ensure(this.walls.find(w => w.isEqual(wall))).parents = currentNode;
+        }
       }
 
-      maze.removeWall(maze.getWalls().indexOf(
-        ensure(maze.getWalls().find(element => element.isEqual(currentNode)))));
+      this.walls.splice(this.walls.indexOf(
+        ensure(this.walls.find(element => element.isEqual(currentNode)))), 1);
 
     // after the maze is built, player and princess are added
     } else {
@@ -120,7 +127,8 @@ export class IceBuilder extends FloorSaver implements Builder
       }
     }
     let visited = this.visited;
-    neighbours = neighbours.filter(neighbour => !maze.isWall(neighbour) &&
+    neighbours = neighbours.filter(neighbour =>
+      !this.walls.some(wall => wall.isEqual(neighbour)) &&
       !maze.isIce(neighbour) && !maze.isNode(neighbour) &&
       !visited.some(v => v.isEqual(neighbour)));
     neighbours.forEach(neighbour => neighbour.parents = node);
@@ -252,9 +260,9 @@ export class IceBuilder extends FloorSaver implements Builder
       currentNode.sameX(maze).concat(currentNode.sameY(maze));
 
     // gives old parents for walls
-    walls = walls.filter(node => maze.isWall(node))
-      .map(wall => maze.getWall(maze.getWalls().indexOf(
-        ensure(maze.getWalls().find(w => w.isEqual(wall))))));
+    walls = walls.filter(node => this.walls.some(wall => wall.isEqual(node)))
+      .map(wall => this.walls[this.walls.indexOf(
+        ensure(this.walls.find(w => w.isEqual(wall))))]);
 
     // filter walls to reparents
     walls = walls.filter(w =>

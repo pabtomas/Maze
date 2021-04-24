@@ -13,6 +13,11 @@ const KEY_COLOR: string = 'gold';
 const SPRING_COLOR: string = 'orange';
 const LINKEDSPRING_COLOR: string = 'crimson';
 const ICE_COLOR: string = '#80f2ff';
+const ARROW_COLOR: string = 'navy';
+const LEFTARROW_COLOR: string = 'red';
+const RIGHTARROW_COLOR: string = 'dodgerblue';
+const TOPARROW_COLOR: string = 'gold';
+const DOWNARROW_COLOR: string = 'limegreen';
 
 let canvas: HTMLCanvasElement;
 let text: HTMLHeadingElement;
@@ -163,6 +168,101 @@ export class Drawer
         context.fillStyle = ICE_COLOR;
         context.fillRect(node.x * nodeSize, node.y * nodeSize,
           nodeSize, nodeSize);
+      }
+    });
+  }
+
+  drawArrows(maze: Maze): void
+  {
+    let nodeSize: number = this.nodeSize;
+    let viewer: number = maze.getViewer();
+    maze.getArrows().forEach(function(node) {
+      if (node.z === viewer)
+      {
+        context.fillStyle = ARROW_COLOR;
+        context.fillRect(node.x * nodeSize, node.y * nodeSize,
+          nodeSize, nodeSize);
+
+        context.lineWidth = nodeSize / 10;
+        context.beginPath();
+
+        let child: MazeNode;
+
+        if (maze.getInteruptor())
+        {
+          child = node.parents;
+        } else {
+          child = node.children[0];
+        }
+
+        if (child.y > node.y)
+        {
+          context.strokeStyle = DOWNARROW_COLOR;
+          context.moveTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize / 5);
+          context.lineTo(node.x * nodeSize + nodeSize / 2,
+            node.y * nodeSize + nodeSize * 2 / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize / 5);
+          context.stroke();
+          context.beginPath();
+          context.moveTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize * 3 / 5);
+          context.lineTo(node.x * nodeSize + nodeSize / 2,
+            node.y * nodeSize + nodeSize * 4 / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize * 3 / 5);
+        } else if (child.y < node.y) {
+          context.strokeStyle = TOPARROW_COLOR;
+          context.moveTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize * 2 / 5);
+          context.lineTo(node.x * nodeSize + nodeSize / 2,
+            node.y * nodeSize + nodeSize / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize * 2 / 5);
+          context.stroke();
+          context.beginPath();
+          context.moveTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize * 4 / 5);
+          context.lineTo(node.x * nodeSize + nodeSize / 2,
+            node.y * nodeSize + nodeSize * 3 / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize * 4 / 5);
+        } else if (child.x > node.x) {
+          context.strokeStyle = RIGHTARROW_COLOR;
+          context.moveTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 2 / 5,
+            node.y * nodeSize + nodeSize / 2);
+          context.lineTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize * 4 / 5);
+          context.stroke();
+          context.beginPath();
+          context.moveTo(node.x * nodeSize + nodeSize * 3 / 5,
+            node.y * nodeSize + nodeSize / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize / 2);
+          context.lineTo(node.x * nodeSize + nodeSize * 3 / 5,
+            node.y * nodeSize + nodeSize * 4 / 5);
+        } else if (child.x < node.x) {
+          context.strokeStyle = LEFTARROW_COLOR;
+          context.moveTo(node.x * nodeSize + nodeSize * 2 / 5,
+            node.y * nodeSize + nodeSize / 5);
+          context.lineTo(node.x * nodeSize + nodeSize / 5,
+            node.y * nodeSize + nodeSize / 2);
+          context.lineTo(node.x * nodeSize + nodeSize * 2 / 5,
+            node.y * nodeSize + nodeSize * 4 / 5);
+          context.stroke();
+          context.beginPath();
+          context.moveTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize / 5);
+          context.lineTo(node.x * nodeSize + nodeSize * 3 / 5,
+            node.y * nodeSize + nodeSize / 2);
+          context.lineTo(node.x * nodeSize + nodeSize * 4 / 5,
+            node.y * nodeSize + nodeSize * 4 / 5);
+        }
+
+        context.stroke();
       }
     });
   }
@@ -380,6 +480,7 @@ export class Drawer
   {
     this.drawMaze(maze);
     this.drawIce(maze);
+    this.drawArrows(maze);
     this.drawPrincess(maze);
     this.drawLinkedSpring(maze);
     this.drawSpringUnderMouse(maze);

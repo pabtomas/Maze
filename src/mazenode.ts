@@ -36,16 +36,22 @@ export class MazeNode
     }
   }
 
-  possibleNeighbourhood(): Array<MazeNode>
+  possible2DNeighbourhood(): Array<MazeNode>
   {
     return [
       new MazeNode(this.x - 1, this.y, this.z),
       new MazeNode(this.x + 1, this.y, this.z),
       new MazeNode(this.x, this.y - 1, this.z),
       new MazeNode(this.x, this.y + 1, this.z),
+    ];
+  }
+
+  possible3DNeighbourhood(): Array<MazeNode>
+  {
+    return this.possible2DNeighbourhood().concat([
       new MazeNode(this.x, this.y, this.z - 1),
       new MazeNode(this.x, this.y, this.z + 1),
-    ];
+    ]);
   }
 
   sameX(maze: Maze): Array<MazeNode>

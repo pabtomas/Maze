@@ -34,7 +34,7 @@ If the <i>Player</i> meets a <i>Wall</i> or a <i>Maze Limit</i> before a <i>Whit
 
 Press the <i>+</i> and the <i>-</i> keys to zoom in and zoom out.</br>
 Press the <i>Enter</i> key to disable/enable smooth maze building animation. Disabling smooth animation builds big mazes faster.</br>
-Maze has always a solution. Press the <i>S</i> key to see the solution.</br></br>
+Maze has always a solution. Press the <i>S</i> key to see it.</br></br>
 To play game, type this in your terminal when you are in the <b>./Maze</b> repository:</br>
 ```sh
 tsc

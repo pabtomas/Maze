@@ -14,11 +14,11 @@ export class Maze
   private viewer: number;
 
   private nodes: Array<MazeNode>;
-  private walls: Array<MazeNode>;
   private doors: Array<MazeNode>;
   private keys: Array<MazeNode>;
   private springs: Map<MazeNode, MazeNode>;
   private ice: Array<MazeNode>;
+  private arrows: Array<MazeNode>;
   private solution: Array<MazeNode>;
 
   private player: MazeNode;
@@ -29,6 +29,8 @@ export class Maze
 
   private built: boolean;
   private solved: boolean;
+
+  private interuptor: boolean;
 
   constructor()
   {
@@ -43,11 +45,11 @@ export class Maze
     this.viewer = 0;
 
     this.nodes = [];
-    this.walls = [];
     this.doors = [];
     this.keys = [];
     this.springs = new Map();
     this.ice = [];
+    this.arrows = [];
     this.solution = [];
 
     this.player = new MazeNode(-1, -1, -1);
@@ -58,16 +60,18 @@ export class Maze
 
     this.built = false;
     this.solved = false;
+
+    this.interuptor = false;
   }
 
   clear(): void
   {
     this.nodes = [];
-    this.walls = [];
     this.doors = [];
     this.keys = [];
     this.springs = new Map();
     this.ice = [];
+    this.arrows = [];
     this.solution = [];
 
     this.viewer = 0;
@@ -80,12 +84,13 @@ export class Maze
 
     this.built = false;
     this.solved = false;
+
+    this.interuptor = false;
   }
 
-  add(node: MazeNode, walls: Array<MazeNode>): void
+  addNode(node: MazeNode): void
   {
     this.nodes.push(node);
-    this.walls = this.walls.concat(walls);
   }
 
   getNodes(): Array<MazeNode>
@@ -101,31 +106,6 @@ export class Maze
   isNode(n: MazeNode): boolean
   {
     return this.nodes.some(node => node.isEqual(n));
-  }
-
-  getWalls(): Array<MazeNode>
-  {
-    return this.walls;
-  }
-
-  getWall(index: number): MazeNode
-  {
-    return this.walls[index];
-  }
-
-  isWall(node: MazeNode): boolean
-  {
-    return this.walls.some(wall => wall.isEqual(node));
-  }
-
-  addWall(node: MazeNode): void
-  {
-    this.walls.push(node);
-  }
-
-  removeWall(index: number): void
-  {
-    this.walls.splice(index, 1);
   }
 
   isBuilt(): boolean
@@ -337,6 +317,36 @@ export class Maze
     return this.ice.some(ice => ice.isEqual(this.player));
   }
 
+  addArrow(node: MazeNode): void
+  {
+    this.arrows.push(node);
+  }
+
+  getArrows(): Array<MazeNode>
+  {
+    return this.arrows;
+  }
+
+  isArrow(node: MazeNode): boolean
+  {
+    return this.arrows.some(arrow => arrow.isEqual(node));
+  }
+
+  isPlayerOnArrow(): boolean
+  {
+    return this.arrows.some(arrow => arrow.isEqual(this.player));
+  }
+
+  getInteruptor(): boolean
+  {
+    return this.interuptor;
+  }
+
+  useInteruptor(): void
+  {
+    this.interuptor = !this.interuptor;
+  }
+
   getLastPlayerPos(): MazeNode
   {
     return this.lastPlayerPos;
@@ -356,7 +366,7 @@ export class Maze
   {
     this.timeLastPlayerMove = Date.now();
     this.lastPlayerPos = this.player;
-    this.setPlayer(ensure(this.nodes.concat(this.ice)
+    this.setPlayer(ensure(this.nodes.concat(this.ice).concat(this.arrows)
       .find(element => element.isEqual(neighbour))));
 
     if (this.doors.length > 0)
@@ -468,13 +478,5 @@ export class Maze
     }
     solution = solution.filter(node => !node.isEqual(this.player));
     return solution;
-  }
-
-  reparentsWalls(newParents: MazeNode, walls: Array<MazeNode>): void
-  {
-    for (let wall of walls)
-    {
-      ensure(this.walls.find(w => w.isEqual(wall))).parents = newParents;
-    }
   }
 }

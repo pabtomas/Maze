@@ -1,4 +1,4 @@
-enum Level { STAIRS = 0, SPRINGS = 1, ICE = 2, LENGTH = 3 };
+enum Level { STAIRS = 0, SPRINGS = 1, ICE = 2, ARROWS = 3, LENGTH = 4 };
 
 /*
   https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp

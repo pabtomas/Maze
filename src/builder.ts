@@ -39,5 +39,4 @@ export interface Builder
 {
   init: (maze: Maze) => void;
   update: (maze: Maze) => void;
-  computeNeighbours: (maze: Maze, node: MazeNode) => Array<MazeNode>;
 }
