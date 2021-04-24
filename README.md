@@ -22,7 +22,7 @@ This Maze is a <i>Springs Maze</i>. A <i>Springs Maze</i> is a 2D Maze.</br></br
 The <i>Orange Squares</i> are <i>Springs</i>. A <i>Spring</i> is linked to another <i>Spring</i> (and only one).</br>
 The <i>Orange Square</i> with <i>Red Borders</i> is the <i>Linked Spring</i> of the <i>Spring</i> where the <i>Player</i> is.</br>
 If the mouse is over a <i>Spring</i>, the maze will highlight the <i>Spring</i> and its <i>Linked Spring</i>.</br>
-When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring</i>. The <i>Player</i> can use a <i>Spring</i> with the <i>Space</i> key.</br></br>
+When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring</i>. The <i>Player</i> can use a <i>Spring</i> with the <i>Space</i> bar.</br></br>
 
 |<img src="/media/icemaze1.gif"/>|<img src="/media/icemaze2.gif"/>|
 |:------------:|:-------------:|
@@ -31,6 +31,12 @@ When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring<
 This Maze is an <i>Ice Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i>Ice Mazes</i>.</br></br>
 The <i>Cyan Squares</i> are <i>Ice</i>. When the <i>Player</i> is on it, he skates in the same direction until the next <i>White Square</i>.</br>
 If the <i>Player</i> meets a <i>Wall</i> or a <i>Maze Limit</i> before a <i>White Square</i>, he bounces on it.</br></br>
+
+<img src="/media/arrowsmaze.png">
+
+This Maze is an <i>Arrows Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i>Arrows Mazes</i>.</br></br>
+The <i>Navy Squares with Colored Arrows inside</i> are <i>Arrows</i>. When the <i>Player</i> is on it, he is displaced in the <i>Arrow's Direction</i>.</br>
+Press the <i>Space</i> bar to reverse <i>Arrows' Directions</i>.</br>
 
 Press the <i>+</i> and the <i>-</i> keys to zoom in and zoom out.</br>
 Press the <i>Enter</i> key to disable/enable smooth maze building animation. Disabling smooth animation builds big mazes faster.</br>
