@@ -6,6 +6,7 @@ export class MazeNode
   public x: number;
   public y: number;
   public z: number;
+  public t: number;
   public parents: MazeNode;
   public children: Array<MazeNode>;
   public weight: number;
@@ -15,6 +16,7 @@ export class MazeNode
     this.x = x;
     this.y = y;
     this.z = z;
+    this.t = 0;
     this.parents = this;
     this.children = [];
     this.weight = 0;
@@ -28,7 +30,7 @@ export class MazeNode
 
   getNeighbourhood(): Array<MazeNode>
   {
-    if (this.isEqual(this.parents))
+    if (this.isEqual(this.parents) && (this.parents.t === this.t))
     {
       return this.children;
     } else {
@@ -107,7 +109,8 @@ export class MazeNode
   toString(): string
   {
     return '('.concat(this.x.toString()).concat(', ').concat(this.y.toString())
-      .concat(', ').concat(this.z.toString()).concat(')');
+      .concat(', ').concat(this.z.toString()).concat(', ')
+      .concat(this.t.toString()).concat(')');
   }
 }
 
@@ -122,7 +125,8 @@ export function bfs(root: MazeNode): MazeNode
     currentNode = queue.splice(0, 1)[0];
     for (let neighbour of currentNode.getNeighbourhood())
     {
-      if (!visited.some(element => neighbour.isEqual(element)))
+      if (!visited.some(element => neighbour.isEqual(element) &&
+        (element.t === neighbour.t)))
       {
         neighbour.weight = currentNode.weight + 1;
         visited.push(neighbour);

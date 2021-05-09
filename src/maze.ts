@@ -1,4 +1,4 @@
-import { ensure } from './util';
+import { ensure, shuffle, getRandomInt } from './util';
 import { MazeNode, distBetween } from './mazenode';
 
 export class Maze
@@ -32,11 +32,13 @@ export class Maze
 
   private interuptor: boolean;
 
+  private year: number;
+
   constructor()
   {
     this.level = 1;
-    this.width = 6;
-    this.height = 3;
+    this.width = 190;
+    this.height = 100;
     this.floor = 1;
 
     this.floorStep = 10;
@@ -62,6 +64,8 @@ export class Maze
     this.solved = false;
 
     this.interuptor = false;
+
+    this.year = 0;
   }
 
   clear(): void
@@ -86,6 +90,8 @@ export class Maze
     this.solved = false;
 
     this.interuptor = false;
+
+    this.year = 0;
   }
 
   addNode(node: MazeNode): void
@@ -96,6 +102,59 @@ export class Maze
   getNodes(): Array<MazeNode>
   {
     return this.nodes;
+  }
+
+  shuffleNodes(): void
+  {
+    let groupedNodes: Array<Array<MazeNode>> = [];
+
+    let queue: Array<MazeNode> =
+      [this.nodes.splice(getRandomInt(this.nodes.length), 1)[0]];
+    let currentNode: MazeNode;
+    let visited: Array<MazeNode> = [queue[0]];
+    let flag: boolean;
+
+    while (this.nodes.length > 0)
+    {
+      flag = true;
+
+      if (queue.length === 0)
+      {
+        queue = [this.nodes.splice(getRandomInt(this.nodes.length), 1)[0]];
+        visited.push(queue[0]);
+      }
+
+      currentNode = queue.splice(0, 1)[0];
+
+      for (let neighbour of currentNode.getNeighbourhood()
+        .filter(n => this.isNode(n)))
+      {
+        if ((visited.length !== 12) && (flag))
+        {
+          if (!visited.some(element => neighbour.isEqual(element) &&
+            (element.t === neighbour.t)))
+          {
+            visited.push(neighbour);
+            queue.push(neighbour);
+            this.nodes = this.nodes.filter(node => !node.isEqual(neighbour));
+          }
+        } else {
+          groupedNodes.push(visited.slice());
+          queue = [this.nodes.splice(getRandomInt(this.nodes.length), 1)[0]];
+          visited = [queue[0]];
+          flag = false;
+        }
+      }
+    }
+
+    shuffle(groupedNodes);
+
+    if (visited.length > 0)
+    {
+      groupedNodes.splice(0, 0, visited.slice());
+    }
+
+    this.nodes = groupedNodes.flat();
   }
 
   getNode(index: number): MazeNode
@@ -166,6 +225,8 @@ export class Maze
     {
       this.viewer = 0;
     }
+
+    this.year = this.player.t;
   }
 
   getPrincess(): MazeNode
@@ -193,6 +254,11 @@ export class Maze
     return this.doors;
   }
 
+  isDoor(node: MazeNode): boolean
+  {
+    return this.doors.some(door => door.isEqual(node));
+  }
+
   canPlayerUnlockDoors(): boolean
   {
     return this.doors.length > this.keys.length;
@@ -218,14 +284,28 @@ export class Maze
     return this.viewer;
   }
 
-  setViewer(floor: number): void
+  incViewer(): void
   {
-    this.viewer = floor;
+    this.viewer += 1;
+    if (this.viewer === this.floor)
+    {
+      this.viewer = 0;
+    }
+  }
+
+  decViewer(): void
+  {
+    this.viewer -= 1;
+    if (this.viewer < 0)
+    {
+      this.viewer = this.floor - 1;
+    }
   }
 
   isFinished(): boolean
   {
-    return this.player.isEqual(this.princess);
+    return this.player.isEqual(this.princess) &&
+      (this.player.t === this.princess.t);
   }
 
   getLevel(): number
@@ -347,6 +427,29 @@ export class Maze
     this.interuptor = !this.interuptor;
   }
 
+  getYear(): number
+  {
+    return this.year;
+  }
+
+  incYear(): void
+  {
+    this.year += 1;
+    if (this.year === this.nodes[0].t + 1)
+    {
+      this.year = 0;
+    }
+  }
+
+  decYear(): void
+  {
+    this.year -= 1;
+    if (this.year < 0)
+    {
+      this.year = this.nodes[0].t;
+    }
+  }
+
   getLastPlayerPos(): MazeNode
   {
     return this.lastPlayerPos;
@@ -367,7 +470,8 @@ export class Maze
     this.timeLastPlayerMove = Date.now();
     this.lastPlayerPos = this.player;
     this.setPlayer(ensure(this.nodes.concat(this.ice).concat(this.arrows)
-      .find(element => element.isEqual(neighbour))));
+      .find(element => element.isEqual(neighbour) &&
+        (element.t === neighbour.t))));
 
     if (this.doors.length > 0)
     {
@@ -426,7 +530,7 @@ export class Maze
     // path between goal and root maze
     let tmp: MazeNode = goal;
     goalRoot.push(tmp);
-    while (!tmp.isEqual(tmp.parents))
+    while (!(tmp.isEqual(tmp.parents) && (tmp.t === tmp.parents.t)))
     {
       tmp = tmp.parents;
       goalRoot.push(tmp);
@@ -435,19 +539,19 @@ export class Maze
     // path between player and root maze
     tmp = this.player;
     playerRoot.push(tmp);
-    while (!tmp.isEqual(tmp.parents))
+    while (!(tmp.isEqual(tmp.parents) && (tmp.t === tmp.parents.t)))
     {
       tmp = tmp.parents;
       playerRoot.push(tmp);
     }
 
     // filter same nodes between 2 paths
-    let sameMazeNodes: Array<MazeNode> = goalRoot.filter(
-      node => playerRoot.some(element => element.isEqual(node)));
+    let sameMazeNodes: Array<MazeNode> = goalRoot.filter(node =>
+      playerRoot.some(element => element.isEqual(node) && (element.t === node.t)));
     goalRoot = goalRoot.filter(node => !sameMazeNodes.some(element =>
-      element.isEqual(node)));
+      element.isEqual(node) && (element.t === node.t)));
     playerRoot = playerRoot.filter(node => !sameMazeNodes.some(element =>
-      element.isEqual(node)));
+      element.isEqual(node) && (element.t === node.t)));
 
     // add the last same node to link the 2 paths
     if (sameMazeNodes.length > 0)
@@ -465,7 +569,7 @@ export class Maze
       {
         for (let node of solution[i - 1].between(solution[i]))
         {
-          if (this.ice.some(ice => ice.isEqual(node)))
+          if (this.ice.some(ice => ice.isEqual(node) && (ice.t === node.t)))
           {
             solution.splice(i, 0, node);
           }
@@ -473,7 +577,83 @@ export class Maze
       }
     }
 
-    solution = solution.filter(node => !node.isEqual(this.player));
+    solution = solution.filter(node => !(node.isEqual(this.player) &&
+      (this.player.t === node.t)));
     return solution;
+  }
+
+  computeNewTree(portals: Array<Array<MazeNode>>, nodesPerYear: number): void
+  {
+    // give the correct year for each node of last maze
+    this.nodes.forEach((node, index) =>
+      this.nodes[index].t = portals.length);
+
+    let numberNodes: number = this.nodes.length;
+
+    let newNodes: Array<MazeNode>;
+
+    // deep copy of portal
+    let p: MazeNode;
+    for (let year: number = portals.length - 1; year > -1; --year)
+    {
+      newNodes = [];
+
+      // add same year portals to the maze
+      for (let portal of portals[year])
+      {
+        p = new MazeNode(portal.x, portal.y, portal.z);
+        p.t = year;
+        p.parents = ensure(this.nodes.find(
+          node => node.isEqual(p) && (node.t === year + 1)));
+        p.parents.children.push(p);
+        newNodes.push(p);
+      }
+
+      this.nodes = this.nodes.concat(newNodes);
+
+      // allow to get neighbours of node but for the next year
+      let node: MazeNode;
+      let futureNode: MazeNode;
+      let neighbourhood: Array<MazeNode>;
+
+      // add last year maze
+      while (newNodes.length > 0)
+      {
+        node = ensure(newNodes.pop());
+
+        // get the same node for the next year
+        futureNode = ensure(this.nodes.find(n => n.isEqual(node) &&
+          (n.t === node.t + 1)));
+
+        // if parents' current node is a portal, each node around the
+        // current node have to be added to the last year maze
+        if (node.parents.t === node.t)
+        {
+          neighbourhood = futureNode.getNeighbourhood()
+            .filter(n => !n.isEqual(node.parents));
+        } else {
+          neighbourhood = futureNode.getNeighbourhood();
+        }
+
+        // current node's children are the same neighbourhood than the next
+        // year less the node added the next year
+        node.children = neighbourhood
+          .filter(neighbour => (neighbour.t === futureNode.t) &&
+            this.nodes.slice(0, numberNodes - (portals.length - year) *
+              nodesPerYear)
+            .some(olderNode => olderNode.isEqual(neighbour)) &&
+              !newNodes.some(n => n.isEqual(neighbour)))
+          .map(n => {
+            // deep copy
+            let child = new MazeNode(n.x, n.y, n.z);
+            child.parents = node;
+            child.t = year;
+            return child;
+          });
+
+        newNodes = newNodes.concat(node.children);
+        this.nodes = this.nodes.concat(node.children);
+      }
+    }
   }
 }

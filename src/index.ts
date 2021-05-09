@@ -5,6 +5,7 @@ import { StairsBuilder } from './stairsbuilder';
 import { SpringsBuilder } from './springsbuilder';
 import { IceBuilder } from './icebuilder';
 import { ArrowsBuilder } from './arrowsbuilder';
+import { PortalsBuilder } from './portalsbuilder';
 import { Drawer } from './drawer';
 
 let animationLaunched: boolean = false;
@@ -13,13 +14,14 @@ let loadMazeFaster: boolean = false;
 const MIN_FRAME_TIME: number = 1000;
 
 let maze: Maze = new Maze();
-let currentBuilder = Level.STAIRS;
+let currentBuilder = Level.PORTALS;//Level.STAIRS;
 let builders: Array<StairsBuilder | SpringsBuilder | IceBuilder |
-  ArrowsBuilder > = [
+  ArrowsBuilder | PortalsBuilder > = [
     new StairsBuilder(),
     new SpringsBuilder(),
     new IceBuilder(),
-    new ArrowsBuilder()
+    new ArrowsBuilder(),
+    new PortalsBuilder()
 ];
 let drawer: Drawer = new Drawer(maze);
 
@@ -90,11 +92,11 @@ function buildNewLevel(maze: Maze): void
     {
       builders.forEach(
         builder => builder.setBackup(builders[currentBuilder].getBackup()));
-      ++currentBuilder;
+      /*++currentBuilder;
       if (currentBuilder === Level.LENGTH)
       {
         currentBuilder = 0;
-      }
+      }*/
     }
     builders[currentBuilder].init(maze);
     drawer.update(maze);
@@ -143,130 +145,173 @@ function launchAnimation(): void {
 // ------------------------------------
 
 window.addEventListener('keydown', function(event) {
-  let neighbour: MazeNode;
+  let neighbour: MazeNode | undefined;
   let player = maze.getPlayer();
   drawer.disableDrawingUnderMouse();
   switch (event.key)
   {
     case 'ArrowLeft':
-      neighbour = new MazeNode(player.x - 1, player.y, player.z);
+      neighbour = maze.getNodes().find(node => (player.t === node.t) &&
+        node.isEqual(new MazeNode(player.x - 1, player.y, player.z)));
 
       // check if maze is built, if player isn't on ice and if player doesn't
       // move on a wall, a locked door or outside the maze
-      if ((maze.getNodes().some(node => node.isEqual(neighbour))
-        || maze.getIce().some(ice => ice.isEqual(neighbour))
-        || maze.getArrows().some(arrow => arrow.isEqual(neighbour)))
-        && (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
-        maze.canPlayerUnlockDoors()) && (player.x > 0)
-        && maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+      if (neighbour)
       {
-        maze.movePlayer(neighbour);
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt() &&
+          !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case 'ArrowUp':
-      neighbour = new MazeNode(player.x, player.y - 1, player.z);
+      neighbour = maze.getNodes().find(node => (player.t === node.t) &&
+        node.isEqual(new MazeNode(player.x, player.y - 1, player.z)));
 
       // check if maze is built, if player isn't on ice and if player doesn't
       // move on a wall, a locked door or outside the maze
-      if ((maze.getNodes().some(node => node.isEqual(neighbour)) ||
-        maze.getIce().some(ice => ice.isEqual(neighbour))
-        || maze.getArrows().some(arrow => arrow.isEqual(neighbour)))
-        && (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
-        maze.canPlayerUnlockDoors()) && (player.y > 0)
-        && maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+      if (neighbour)
       {
-        maze.movePlayer(neighbour);
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt() &&
+          !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case 'PageDown':
-      neighbour = new MazeNode(player.x, player.y, player.z - 1);
+      neighbour = maze.getNodes().find(node => (player.t === node.t) &&
+        node.isEqual(new MazeNode(player.x, player.y, player.z - 1)));
 
       // check if maze is built, if player isn't on ice and if player doesn't
       // move on a wall, a locked door or outside the maze
-      if ((maze.getNodes().some(element => element.isEqual(neighbour)) ||
-        maze.getIce().some(ice => ice.isEqual(neighbour))
-        || maze.getArrows().some(arrow => arrow.isEqual(neighbour)))
-        && (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
-        maze.canPlayerUnlockDoors()) && (player.z > 0)
-        && maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+      if (neighbour)
       {
-        maze.movePlayer(neighbour);
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt() &&
+          !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case 'ArrowRight':
-      neighbour = new MazeNode(player.x + 1, player.y, player.z);
+      neighbour = maze.getNodes().find(node => (player.t === node.t) &&
+        node.isEqual(new MazeNode(player.x + 1, player.y, player.z)));
 
       // check if maze is built, if player isn't on ice and if player doesn't
       // move on a wall, a locked door or outside the maze
-      if ((maze.getNodes().some(element => element.isEqual(neighbour)) ||
-        maze.getIce().some(ice => ice.isEqual(neighbour))
-        || maze.getArrows().some(arrow => arrow.isEqual(neighbour)))
-        && (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
-        maze.canPlayerUnlockDoors()) && maze.isBuilt()
-        && (player.x < maze.getWidth() - 1) && !maze.isPlayerOnIce()
-        && !maze.isPlayerOnArrow())
+      if (neighbour)
       {
-        maze.movePlayer(neighbour);
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt()
+          && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case 'ArrowDown':
-      neighbour = new MazeNode(player.x, player.y + 1, player.z);
+      neighbour = maze.getNodes().find(node => (player.t === node.t) &&
+        node.isEqual(new MazeNode(player.x, player.y + 1, player.z)));
 
       // check if maze is built, if player isn't on ice and if player doesn't
       // move on a wall, a locked door or outside the maze
-      if ((maze.getNodes().some(element => element.isEqual(neighbour)) ||
-        maze.getIce().some(ice => ice.isEqual(neighbour))
-        || maze.getArrows().some(arrow => arrow.isEqual(neighbour)))
-        && (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
-        maze.canPlayerUnlockDoors()) && maze.isBuilt()
-        && (player.y < maze.getHeight() - 1) && !maze.isPlayerOnIce() &&
-        !maze.isPlayerOnArrow())
+      if (neighbour)
       {
-        maze.movePlayer(neighbour);
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt()
+          && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case 'PageUp':
-      neighbour = new MazeNode(player.x, player.y, player.z + 1);
+      neighbour = maze.getNodes().find(node => (player.t === node.t) &&
+        node.isEqual(new MazeNode(player.x, player.y, player.z + 1)));
 
       // check if maze is built, if player isn't on ice and if player doesn't
       // move on a wall, a locked door or outside the maze
-      if ((maze.getNodes().some(element => element.isEqual(neighbour)) ||
-        maze.getIce().some(ice => ice.isEqual(neighbour))
-        || maze.getArrows().some(arrow => arrow.isEqual(neighbour)))
-        && (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
-        maze.canPlayerUnlockDoors()) && maze.isBuilt()
-        && (player.z < maze.getFloor() - 1) && !maze.isPlayerOnIce() &&
-        !maze.isPlayerOnArrow())
+      if (neighbour)
       {
-        maze.movePlayer(neighbour);
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt()
+          && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
+      }
+      break;
+    case 'Backspace':
+      neighbour = maze.getNodes().find(node => (node.t === player.t - 1) &&
+        node.isEqual(new MazeNode(player.x, player.y, player.z)));
+
+      if (neighbour && player.getNeighbourhood().some(node =>
+        (node.t === player.t - 1) && node.isEqual(
+          new MazeNode(player.x, player.y, player.z))))
+      {
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt()
+          && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
+      }
+      break;
+    case '=':
+      neighbour = maze.getNodes().find(node => (node.t === player.t + 1) &&
+        node.isEqual(new MazeNode(player.x, player.y, player.z)));
+
+      if (neighbour && player.getNeighbourhood().some(node =>
+        (node.t === player.t + 1) && node.isEqual(
+          new MazeNode(player.x, player.y, player.z))))
+      {
+        if ((maze.isNode(neighbour) || maze.isIce(neighbour) ||
+          maze.isArrow(neighbour)) && (!maze.isDoor(neighbour) ||
+          maze.canPlayerUnlockDoors()) && maze.isBuilt()
+          && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case ' ':
       if ((currentBuilder === Level.SPRINGS) && (maze.isSpring(player)))
       {
-        neighbour = maze.getLinkedSpring(player);
-        if (!maze.getDoors().some(door => door.isEqual(neighbour)) ||
+        let linkedSpring: MazeNode = maze.getLinkedSpring(player);
+        if (!maze.getDoors().some(door => door.isEqual(linkedSpring)) ||
           maze.canPlayerUnlockDoors())
         {
-          maze.movePlayer(neighbour);
+          maze.movePlayer(linkedSpring);
         }
       } else if (currentBuilder === Level.ARROWS) {
         maze.useInteruptor();
       }
       break;
     case 'Shift':
-      maze.setViewer(maze.getViewer() + 1);
-      if (maze.getViewer() === maze.getFloor())
-      {
-        maze.setViewer(0);
-      }
+      maze.incViewer();
       break;
     case 'Control':
-      maze.setViewer(maze.getViewer() - 1);
-      if (maze.getViewer() < 0)
-      {
-        maze.setViewer(maze.getFloor() - 1);
-      }
+      maze.decViewer();
+      break;
+    case 'f':
+    case 'F':
+      maze.incYear();
+      break;
+    case 'p':
+    case 'P':
+      maze.decYear();
       break;
     case '+':
       drawer.incNodeSize(maze);

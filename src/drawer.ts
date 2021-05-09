@@ -18,6 +18,9 @@ const LEFTARROW_COLOR: string = 'red';
 const RIGHTARROW_COLOR: string = 'dodgerblue';
 const TOPARROW_COLOR: string = 'gold';
 const DOWNARROW_COLOR: string = 'limegreen';
+const PASTPORTAL_COLOR: string = 'blue';
+const FUTUREPORTAL_COLOR: string = 'red';
+const PORTAL_COLOR: string = 'blueviolet';
 
 let canvas: HTMLCanvasElement;
 let text: HTMLHeadingElement;
@@ -117,9 +120,22 @@ export class Drawer
   {
     let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
-    maze.getNodes().forEach(function(node) {
-      if (node.z === viewer)
+    let year: number = maze.getYear();
+
+    const a: number = 0.75 * (nodeSize / 20);
+    let centerX: number;
+    let centerY: number;
+    let angle: number;
+    let x: number;
+    let y: number;
+    context.lineWidth = nodeSize / 10;
+
+    maze.getNodes().forEach(node => {
+      if ((node.z === viewer) && (node.t === year))
       {
+        let future: boolean = false;
+        let past: boolean = false;
+
         if (maze.isSpring(node))
         {
           context.fillStyle = SPRING_COLOR;
@@ -128,16 +144,28 @@ export class Drawer
           let up: boolean = false;
           let neighbourhood: Array<MazeNode> = node.getNeighbourhood();
 
-          if (neighbourhood.some(element =>
-            element.isEqual(new MazeNode(node.x, node.y, node.z - 1))))
+          if (neighbourhood.some(neighbour =>
+            neighbour.isEqual(new MazeNode(node.x, node.y, node.z - 1))))
           {
             down = true;
           }
 
-          if (neighbourhood.some(element =>
-            element.isEqual(new MazeNode(node.x, node.y, node.z + 1))))
+          if (neighbourhood.some(neighbour =>
+            neighbour.isEqual(new MazeNode(node.x, node.y, node.z + 1))))
           {
             up = true;
+          }
+
+          if (neighbourhood.some(neighbour => (neighbour.t === node.t + 1) &&
+            neighbour.isEqual(new MazeNode(node.x, node.y, node.z))))
+          {
+            future = true;
+          }
+
+          if (neighbourhood.some(neighbour => (neighbour.t === node.t - 1) &&
+            neighbour.isEqual(new MazeNode(node.x, node.y, node.z))))
+          {
+            past = true;
           }
 
           if (down && up)
@@ -150,10 +178,36 @@ export class Drawer
           } else {
             context.fillStyle = MAZE_COLOR;
           }
+
+          if (future && past)
+          {
+            context.strokeStyle = PORTAL_COLOR;
+          } else if (past) {
+            context.strokeStyle = PASTPORTAL_COLOR;
+          } else if (future) {
+            context.strokeStyle = FUTUREPORTAL_COLOR;
+          }
         }
 
         context.fillRect(node.x * nodeSize, node.y * nodeSize,
           nodeSize, nodeSize);
+
+        if (future || past)
+        {
+          centerX = node.x * nodeSize + nodeSize / 2;
+          centerY = node.y * nodeSize + nodeSize / 2;
+
+          context.moveTo(centerX, centerY);
+          context.beginPath();
+
+          for (let i = 0; i < 108; i++) {
+            angle = 0.1 * i;
+            x = centerX + (a + a * angle) * Math.cos(angle);
+            y = centerY + (a + a * angle) * Math.sin(angle);
+            context.lineTo(x, y);
+          }
+          context.stroke();
+        }
       }
     });
   }
@@ -162,8 +216,9 @@ export class Drawer
   {
     let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
-    maze.getIce().forEach(function(node) {
-      if (node.z === viewer)
+    let year: number = maze.getYear();
+    maze.getIce().forEach(node => {
+      if ((node.z === viewer) && (node.t === year))
       {
         context.fillStyle = ICE_COLOR;
         context.fillRect(node.x * nodeSize, node.y * nodeSize,
@@ -176,8 +231,9 @@ export class Drawer
   {
     let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
-    maze.getArrows().forEach(function(node) {
-      if (node.z === viewer)
+    let year: number = maze.getYear();
+    maze.getArrows().forEach(node => {
+      if ((node.z === viewer) && (node.t === year))
       {
         context.fillStyle = ARROW_COLOR;
         context.fillRect(node.x * nodeSize, node.y * nodeSize,
@@ -271,8 +327,9 @@ export class Drawer
   {
     let princess: MazeNode = maze.getPrincess();
     let viewer: number = maze.getViewer();
+    let year: number = maze.getYear();
     if (!princess.isEqual(new MazeNode(-1, -1, -1)) &&
-      (princess.z === viewer))
+      (princess.z === viewer) && (princess.t === year))
     {
       context.fillStyle = PRINCESS_COLOR;
       context.fillRect(princess.x * this.nodeSize,
@@ -298,8 +355,9 @@ export class Drawer
   {
     let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
-    maze.getDoors().forEach(function(node) {
-      if (node.z === viewer)
+    let year: number = maze.getYear();
+    maze.getDoors().forEach(node => {
+      if ((node.z === viewer) && (node.t === year))
       {
         context.fillStyle = DOOR_COLOR;
         context.beginPath();
@@ -341,8 +399,10 @@ export class Drawer
     if (maze.getKeys().length > 0)
     {
       let viewer: number = maze.getViewer();
+      let year: number = maze.getYear();
       let key: MazeNode = maze.getKey();
-      if (!maze.canPlayerUnlockDoors() && (key.z === viewer))
+      if (!maze.canPlayerUnlockDoors() && (key.z === viewer) &&
+        (key.t === year))
       {
         context.fillStyle = KEY_COLOR;
         context.beginPath();
@@ -367,8 +427,9 @@ export class Drawer
   {
     let player: MazeNode = maze.getPlayer();
     let viewer: number = maze.getViewer();
+    let year: number = maze.getYear();
     if (!player.isEqual(new MazeNode(-1, -1, -1)) &&
-      (player.z === viewer))
+      (player.z === viewer) && (player.t === year))
     {
       context.fillStyle = PLAYER_COLOR;
       context.beginPath();
@@ -386,6 +447,7 @@ export class Drawer
       let nodeSize: number = this.nodeSize;
       let player: MazeNode = maze.getPlayer();
       let viewer: number = maze.getViewer();
+      let year: number = maze.getYear();
       let solution: Array<MazeNode> = maze.getSolution();
       let lastNode: MazeNode = solution[0];
 
@@ -393,9 +455,10 @@ export class Drawer
       context.lineWidth = nodeSize / 5;
       context.beginPath();
 
-      if ((player.z === viewer) &&
-        ((solution[0].z !== player.z) || (maze.isSpring(player) &&
-        solution.some(node => node.isEqual(maze.getLinkedSpring(player))))))
+      if ((player.z === viewer) && (player.t === year) &&
+        ((solution[0].z !== player.z) || (solution[0].t !== player.t) ||
+        (maze.isSpring(player) && solution.some(
+          node => node.isEqual(maze.getLinkedSpring(player))))))
       {
         context.strokeRect(player.x * nodeSize + nodeSize / 10,
           player.y * nodeSize + nodeSize / 10,
@@ -407,10 +470,11 @@ export class Drawer
           player.y * nodeSize + (nodeSize / 2));
       }
 
-      solution.forEach(function(node) {
-        if (node.z === viewer)
+      solution.forEach(node => {
+        if ((node.z === viewer) && (node.t === year))
         {
-          if ((lastNode.z !== node.z) || (maze.isSpring(node) &&
+          if ((lastNode.z !== node.z) || (lastNode.t !== node.t) ||
+            (maze.isSpring(node) &&
             maze.getLinkedSpring(node).isEqual(lastNode)))
           {
             context.stroke();
@@ -432,7 +496,8 @@ export class Drawer
   {
     text.innerHTML = 'LEVEL '.concat(maze.getLevel().toString())
       .concat(' | FLOOR ').concat((maze.getViewer() + 1).toString())
-      .concat('/').concat(maze.getFloor().toString()).concat(' | KEY = ')
+      .concat('/').concat(maze.getFloor().toString()).concat(' | YEAR ')
+      .concat(maze.getYear().toString()).concat(' | KEY = ')
       .concat(maze.canPlayerUnlockDoors() ? '1' : '0').concat('/')
       .concat((maze.getDoors().length > 0) || (maze.getKeys().length > 0) ?
         '1' : '0');
