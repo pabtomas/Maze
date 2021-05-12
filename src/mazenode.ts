@@ -112,6 +112,12 @@ export class MazeNode
       .concat(', ').concat(this.z.toString()).concat(', ')
       .concat(this.t.toString()).concat(')');
   }
+
+  toExtendedString(): string
+  {
+    return this.parents.toString().concat(' -> ').concat(this.toString())
+      .concat(' -> ').concat(this.children.toString());
+  }
 }
 
 export function bfs(root: MazeNode): MazeNode
