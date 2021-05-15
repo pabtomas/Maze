@@ -1,4 +1,4 @@
-import { MazeNode, bfs } from './mazenode';
+import { MazeNode } from './mazenode';
 import { Maze } from './maze';
 
 export class KeysGenerator
@@ -40,7 +40,7 @@ export class KeysGenerator
     let doors: Array<MazeNode> = maze.getDoors().slice();
     let queue: Array<MazeNode>;
     let currentNode: MazeNode;
-    let visited: Array<MazeNode>;
+    let visited: Array<MazeNode> = [];
 
     let count = 0;
     while (keys.length < maze.getDoors().length)

@@ -71,7 +71,7 @@ export class SpringsBuilder extends FloorSaver implements Builder
       if (!maze.isNode(currentNode) &&
         (this.neighboursInMaze(maze, currentNode) < 2))
       {
-        this.determineParents(maze, currentNode);
+        this.determineNeighbours(maze, currentNode);
         let neighbours = this.computeNeighbours(maze, currentNode);
         maze.addNode(currentNode);
         this.walls = this.walls.concat(neighbours);
@@ -104,7 +104,8 @@ export class SpringsBuilder extends FloorSaver implements Builder
           {
             // if between the last added door and the possibly next door there
             // aren't new intersection, the possibly next door isn't added
-            if (!keysGenerator.subtreeIsPath(node, fullSolution, maze.getDoors()))
+            if (!keysGenerator.subtreeIsPath(node, fullSolution,
+              maze.getDoors()))
             {
               maze.addDoor(node);
             }
@@ -139,7 +140,7 @@ export class SpringsBuilder extends FloorSaver implements Builder
     return neighbours;
   }
 
-  determineParents(maze: Maze, node: MazeNode): void
+  determineNeighbours(maze: Maze, node: MazeNode): void
   {
     if (this.neighboursInMaze(maze, node) === 1)
     {

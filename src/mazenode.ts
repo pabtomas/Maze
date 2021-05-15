@@ -7,6 +7,7 @@ export class MazeNode
   public y: number;
   public z: number;
   public t: number;
+
   public parents: MazeNode;
   public children: Array<MazeNode>;
   public weight: number;
@@ -17,6 +18,7 @@ export class MazeNode
     this.y = y;
     this.z = z;
     this.t = 0;
+
     this.parents = this;
     this.children = [];
     this.weight = 0;
@@ -141,12 +143,4 @@ export function bfs(root: MazeNode): MazeNode
     }
   }
   return visited[visited.length - 1];
-}
-
-export function distBetween(node1: MazeNode, node2: MazeNode): number
-{
-  let horizontalDist = node2.x - node1.x;
-  let verticalDist = node2.y - node1.y;
-  return Math.sqrt(horizontalDist * horizontalDist +
-    verticalDist * verticalDist);
 }

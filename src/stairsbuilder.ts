@@ -47,7 +47,7 @@ export class StairsBuilder extends FloorSaver implements Builder
       if (!maze.isNode(currentNode) &&
         (this.neighboursInMaze(maze, currentNode) === 1))
       {
-        this.determineParents(maze, currentNode);
+        this.determineNeighbours(maze, currentNode);
         let neighbours = this.computeNeighbours(maze, currentNode);
         maze.addNode(currentNode);
         this.walls = this.walls.concat(neighbours);
@@ -70,13 +70,14 @@ export class StairsBuilder extends FloorSaver implements Builder
         let fullSolution: Array<MazeNode> =
           maze.searchSolution(maze.getPrincess());
 
-        let doorStep: number;
+        let doorStep: number = 3;
+        /*let doorStep: number;
         if (maze.getLevel() < 10)
         {
           doorStep = 30;
         } else {
           doorStep = 30 + maze.getLevel();
-        }
+        }*/
 
         // a new door can be placed every 'doorStep' nodes of the solution
         for (let node of fullSolution)
@@ -86,7 +87,8 @@ export class StairsBuilder extends FloorSaver implements Builder
           {
             // if between the last added door and the possibly next door there
             // aren't new intersection, the possibly next door isn't added
-            if (!keysGenerator.subtreeIsPath(node, fullSolution, maze.getDoors()))
+            if (!keysGenerator.subtreeIsPath(node, fullSolution,
+              maze.getDoors()))
             {
               maze.addDoor(node);
             }
@@ -99,7 +101,8 @@ export class StairsBuilder extends FloorSaver implements Builder
 
         if (maze.getDoors().length > 0)
         {
-          let keys: Array<MazeNode> = keysGenerator.generateKeys(maze, fullSolution);
+          let keys: Array<MazeNode> =
+            keysGenerator.generateKeys(maze, fullSolution);
           maze.setKeys(keys);
         }
       }
@@ -123,7 +126,7 @@ export class StairsBuilder extends FloorSaver implements Builder
     return neighbours;
   }
 
-  determineParents(maze: Maze, node: MazeNode): void
+  determineNeighbours(maze: Maze, node: MazeNode): void
   {
     let neighbours: Array<MazeNode> = node.possible3DNeighbourhood();
     let parents: MazeNode = ensure(maze.getNodes().find(

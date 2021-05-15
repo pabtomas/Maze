@@ -1,9 +1,7 @@
 import { ensure, getRandomInt } from './util';
 import { FloorSaver, Builder } from './builder';
 import { MazeNode, bfs } from './mazenode';
-import { Maze } from './maze';
-
-const nodesPerYear: number = 12;
+import { Maze, NODESPERYEAR } from './maze';
 
 export class PortalsBuilder extends FloorSaver implements Builder
 {
@@ -48,7 +46,7 @@ export class PortalsBuilder extends FloorSaver implements Builder
       if (!maze.isNode(currentNode) &&
         (this.neighboursInMaze(maze, currentNode) === 1))
       {
-        this.determineParents(maze, currentNode);
+        this.determineNeighbours(maze, currentNode);
         let neighbours = this.computeNeighbours(maze, currentNode);
         maze.addNode(currentNode);
         this.walls = this.walls.concat(neighbours);
@@ -60,9 +58,13 @@ export class PortalsBuilder extends FloorSaver implements Builder
     } else {
       if (!maze.isBuilt())
       {
+        let start = Date.now();
         maze.Built();
 
         maze.shuffleNodes();
+
+        console.log('shuffle time', Date.now() - start);
+        start = Date.now();
 
         let currentYearPortals: Array<MazeNode> = [];
         let portals: Array<Array<MazeNode>> = [];
@@ -73,7 +75,7 @@ export class PortalsBuilder extends FloorSaver implements Builder
           currentYearPortals =
             currentYearPortals.concat(maze.getNode(index).getNeighbourhood());
           removedNodes = maze.getNodes().length - index;
-          if (Math.floor(removedNodes / nodesPerYear) * nodesPerYear ===
+          if (Math.floor(removedNodes / NODESPERYEAR) * NODESPERYEAR ===
             removedNodes)
           {
             submaze = maze.getNodes().slice(0, index);
@@ -102,12 +104,21 @@ export class PortalsBuilder extends FloorSaver implements Builder
         }
 
         portals.reverse();
-        maze.computeNewTree(portals, nodesPerYear);
+
+        console.log('portals gen time', Date.now() - start);
+        start = Date.now();
+
+        maze.computeNewTree(portals);
+
+        console.log('new tree time', Date.now() - start);
+        start = Date.now();
 
         // princess and player are placed at the extremities of the diameter
         // of the maze
         maze.setPlayer(bfs(maze.getNode(0)));
         maze.setPrincess(bfs(maze.getPlayer()));
+
+        console.log('princess & player placement time', Date.now() - start);
       }
     }
   }
@@ -128,9 +139,9 @@ export class PortalsBuilder extends FloorSaver implements Builder
     return neighbours;
   }
 
-  determineParents(maze: Maze, node: MazeNode): void
+  determineNeighbours(maze: Maze, node: MazeNode): void
   {
-    let neighbours: Array<MazeNode> = node.possible2DNeighbourhood();
+    let neighbours: Array<MazeNode> = node.possible3DNeighbourhood();
     let parents: MazeNode = ensure(maze.getNodes().find(
       element => neighbours.some(neighbour => element.isEqual(neighbour))));
     node.parents = parents;
@@ -140,26 +151,42 @@ export class PortalsBuilder extends FloorSaver implements Builder
   isPathBetween(currentMaze: Array<MazeNode>, node1: MazeNode,
     node2: MazeNode): boolean
   {
-    let stack: Array<MazeNode> = [node1];
-    let currentNode: MazeNode;
-    let visited: Array<MazeNode> = [];
-    while (stack.length > 0)
+    let node1Root: Array<MazeNode> = [];
+    let node2Root: Array<MazeNode> = [];
+
+    // path between node1 and root node
+    let tmp: MazeNode = node1;
+    node1Root.push(tmp);
+    while (!tmp.isEqual(tmp.parents))
     {
-      currentNode = ensure(stack.pop());
-      if (!visited.some(element => element.isEqual(currentNode)))
-      {
-        visited.push(currentNode);
-        for (let neighbour of currentNode.getNeighbourhood()
-          .filter(n => currentMaze.some(node => node.isEqual(n))))
-        {
-          if (neighbour.isEqual(node2))
-          {
-            return true;
-          }
-          stack.push(neighbour);
-        }
-      }
+      tmp = tmp.parents;
+      node1Root.push(tmp);
     }
-    return false;
+
+    // path between node2 and root node
+    tmp = node2;
+    node2Root.push(tmp);
+    while (!tmp.isEqual(tmp.parents))
+    {
+      tmp = tmp.parents;
+      node2Root.push(tmp);
+    }
+
+    // filter same nodes between 2 paths
+    let sameMazeNodes: Array<MazeNode> = node1Root.filter(node =>
+      node2Root.some(element => element.isEqual(node)));
+    node1Root = node1Root.filter(node => !sameMazeNodes.some(element =>
+      element.isEqual(node)));
+    node2Root = node2Root.filter(node => !sameMazeNodes.some(element =>
+      element.isEqual(node)));
+
+    // add the last same node to link the 2 paths
+    if (sameMazeNodes.length > 0)
+    {
+      node2Root.push(sameMazeNodes[0]);
+    }
+
+    let path: Array<MazeNode> = node2Root.concat(node1Root);
+    return path.every(node => currentMaze.some(n => n.isEqual(node)));
   }
 }

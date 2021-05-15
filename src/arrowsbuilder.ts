@@ -106,6 +106,9 @@ export class ArrowsBuilder extends FloorSaver implements Builder
         // of the maze
         maze.setPlayer(bfs(maze.getNode(0)));
         maze.setPrincess(bfs(maze.getPlayer()));
+
+        // more confortable for player
+        maze.useInteruptor();
       }
     }
   }

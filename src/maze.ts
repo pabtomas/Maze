@@ -1,5 +1,7 @@
 import { ensure, shuffle, getRandomInt } from './util';
-import { MazeNode, distBetween } from './mazenode';
+import { MazeNode } from './mazenode';
+
+export const NODESPERYEAR: number = 12;
 
 export class Maze
 {
@@ -37,8 +39,8 @@ export class Maze
   constructor()
   {
     this.level = 1;
-    this.width = 50;
-    this.height = 50;
+    this.width = 40;
+    this.height = 40;
     this.floor = 1;
 
     this.floorStep = 10;
@@ -164,7 +166,7 @@ export class Maze
 
   isNode(n: MazeNode): boolean
   {
-    return this.nodes.some(node => node.isEqual(n));
+    return this.getNodes().some(node => node.isEqual(n));
   }
 
   isBuilt(): boolean
@@ -519,9 +521,6 @@ export class Maze
     }
   }
 
-  /*
-    Return ordered path between player and goal
-  */
   searchSolution(goal: MazeNode): Array<MazeNode>
   {
     let goalRoot: Array<MazeNode> = [];
@@ -530,7 +529,7 @@ export class Maze
     // path between goal and root maze
     let tmp: MazeNode = goal;
     goalRoot.push(tmp);
-    while (!(tmp.isEqual(tmp.parents) && (tmp.t === tmp.parents.t)))
+    while (!tmp.isEqual(tmp.parents) && (tmp.t === tmp.parents.t))
     {
       tmp = tmp.parents;
       goalRoot.push(tmp);
@@ -539,7 +538,7 @@ export class Maze
     // path between player and root maze
     tmp = this.player;
     playerRoot.push(tmp);
-    while (!(tmp.isEqual(tmp.parents) && (tmp.t === tmp.parents.t)))
+    while (!tmp.isEqual(tmp.parents) && (tmp.t === tmp.parents.t))
     {
       tmp = tmp.parents;
       playerRoot.push(tmp);
@@ -547,7 +546,8 @@ export class Maze
 
     // filter same nodes between 2 paths
     let sameMazeNodes: Array<MazeNode> = goalRoot.filter(node =>
-      playerRoot.some(element => element.isEqual(node) && (element.t === node.t)));
+      playerRoot.some(
+        element => element.isEqual(node) && (element.t === node.t)));
     goalRoot = goalRoot.filter(node => !sameMazeNodes.some(element =>
       element.isEqual(node) && (element.t === node.t)));
     playerRoot = playerRoot.filter(node => !sameMazeNodes.some(element =>
@@ -569,7 +569,7 @@ export class Maze
       {
         for (let node of solution[i - 1].between(solution[i]))
         {
-          if (this.ice.some(ice => ice.isEqual(node) && (ice.t === node.t)))
+          if (this.ice.some(ice => ice.isEqual(node)))
           {
             solution.splice(i, 0, node);
           }
@@ -582,7 +582,7 @@ export class Maze
     return solution;
   }
 
-  computeNewTree(portals: Array<Array<MazeNode>>, nodesPerYear: number): void
+  computeNewTree(portals: Array<Array<MazeNode>>): void
   {
     // give the correct year for each node of last maze
     this.nodes.forEach((node, index) =>
@@ -640,7 +640,7 @@ export class Maze
         node.children = neighbourhood
           .filter(neighbour => (neighbour.t === futureNode.t) &&
             this.nodes.slice(0, numberNodes - (portals.length - year) *
-              nodesPerYear)
+              NODESPERYEAR)
             .some(olderNode => olderNode.isEqual(neighbour)) &&
               !newNodes.some(n => n.isEqual(neighbour)))
           .map(n => {
