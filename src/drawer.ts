@@ -21,6 +21,7 @@ const DOWNARROW_COLOR: string = 'limegreen';
 const PASTPORTAL_COLOR: string = 'dodgerblue';
 const FUTUREPORTAL_COLOR: string = 'red';
 const PORTAL_COLOR: string = 'blueviolet';
+const TRANSPARENT: string = 'rgba(0, 0, 0, 0)';
 
 let canvas: HTMLCanvasElement;
 let text: HTMLHeadingElement;
@@ -29,7 +30,7 @@ let context: CanvasRenderingContext2D;
 let eventOccured: boolean = true;
 let mouseX: number = -1;
 let mouseY: number = -1;
-let time: Date = new Date();
+let time: number = Date.now();
 
 export class Drawer
 {
@@ -57,7 +58,7 @@ export class Drawer
 
       if ((oldXNode !== newXNode) || (oldYNode !== newYNode))
       {
-        time = new Date();
+        time = Date.now();
       }
     });
   }
@@ -382,7 +383,22 @@ export class Drawer
     let year: number = maze.getYear();
     if (maze.isBuilt() && (princess.z === viewer) && (princess.t === year))
     {
-      context.fillStyle = PRINCESS_COLOR;
+      let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
+      if (elapsedTime > 2000)
+      {
+        while (elapsedTime > 1000)
+        {
+          elapsedTime -= 1000;
+        }
+        if (elapsedTime < 500)
+        {
+          context.fillStyle = TRANSPARENT;
+        } else {
+          context.fillStyle = PRINCESS_COLOR;
+        }
+      } else {
+        context.fillStyle = PRINCESS_COLOR;
+      }
       context.fillRect(princess.x * this.nodeSize,
         princess.y * this.nodeSize, this.nodeSize, this.nodeSize);
     }
@@ -390,7 +406,7 @@ export class Drawer
 
   drawLinkedSpring(maze: Maze): void
   {
-    if (maze.isSpring(maze.getPlayer()))
+    if (maze.isSpring(maze.getPlayer()) && maze.isBuilt())
     {
       let linkedSpring: MazeNode = maze.getLinkedSpring(maze.getPlayer());
 
@@ -457,7 +473,6 @@ export class Drawer
         (key.t === year))
       {
         context.fillStyle = KEY_COLOR;
-        context.lineWidth = nodeSize / 10;
         context.beginPath();
         context.moveTo(key.x * this.nodeSize + this.nodeSize / 2,
           key.y * this.nodeSize + this.nodeSize / 6);
@@ -469,7 +484,7 @@ export class Drawer
           key.y * this.nodeSize + this.nodeSize / 2);
         context.closePath();
         context.fill();
-        context.lineWidth = this.nodeSize / 5;
+        context.lineWidth = this.nodeSize / 10;
         context.strokeStyle = 'black';
         context.stroke();
       }
@@ -483,7 +498,22 @@ export class Drawer
     let year: number = maze.getYear();
     if (maze.isBuilt() && (player.z === viewer) && (player.t === year))
     {
-      context.fillStyle = PLAYER_COLOR;
+      let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
+      if (elapsedTime > 2000)
+      {
+        while (elapsedTime > 1000)
+        {
+          elapsedTime -= 1000;
+        }
+        if (elapsedTime < 500)
+        {
+          context.fillStyle = TRANSPARENT;
+        } else {
+          context.fillStyle = PLAYER_COLOR;
+        }
+      } else {
+        context.fillStyle = PLAYER_COLOR;
+      }
       context.beginPath();
       context.arc(player.x * this.nodeSize + this.nodeSize / 2,
         player.y * this.nodeSize + this.nodeSize / 2, this.nodeSize / 2.5, 0,
@@ -504,7 +534,22 @@ export class Drawer
       let lastNode: MazeNode = player;
       let nextNode: MazeNode;
 
-      context.strokeStyle = SOLUTION_COLOR;
+      let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
+      if (elapsedTime > 2000)
+      {
+        while (elapsedTime > 1000)
+        {
+          elapsedTime -= 1000;
+        }
+        if (elapsedTime < 500)
+        {
+          context.strokeStyle = TRANSPARENT;
+        } else {
+          context.strokeStyle = SOLUTION_COLOR;
+        }
+      } else {
+        context.strokeStyle = SOLUTION_COLOR;
+      }
       context.lineWidth = nodeSize / 5;
       context.beginPath();
 
@@ -580,10 +625,10 @@ export class Drawer
       {
         let linked: MazeNode = maze.getLinkedSpring(node);
         context.lineWidth = this.nodeSize / 5;
-        let elapsedTime: number = new Date().getTime() - time.getTime();
+        let elapsedTime: number = Date.now() - time;
         if (elapsedTime > 1000)
         {
-          time = new Date();
+          time = Date.now();
           elapsedTime = 0;
         }
         if (elapsedTime < 500)
