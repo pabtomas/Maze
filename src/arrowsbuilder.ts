@@ -1,6 +1,6 @@
 import { getRandomInt, range } from './util';
 import { FloorSaver, Builder } from './builder';
-import { MazeNode, bfs } from './mazenode';
+import { MazeNode, searchFarthestNode } from './mazenode';
 import { Maze } from './maze';
 
 export class ArrowsBuilder extends FloorSaver implements Builder
@@ -35,6 +35,7 @@ export class ArrowsBuilder extends FloorSaver implements Builder
     // Init the maze with a random starting node
     let startingNode = new MazeNode(getRandomInt(maze.getWidth()),
       getRandomInt(maze.getHeight()), getRandomInt(maze.getFloor()));
+    startingNode.root = [startingNode];
 
     // order priority: adding node before building roads
     maze.addNode(startingNode);
@@ -64,6 +65,15 @@ export class ArrowsBuilder extends FloorSaver implements Builder
         if (i > 0)
         {
           currentRoad[i].parents = currentRoad[i - 1];
+          currentRoad[i].root =
+            currentRoad[i].parents.root.concat([currentRoad[i]]);
+          if (i === currentRoad.length - 1)
+          {
+            if (currentNode.root.length > maze.getPlayer().root.length)
+            {
+              maze.setPlayer(currentNode);
+            }
+          }
         }
         if (i < currentRoad.length - 1)
         {
@@ -100,15 +110,14 @@ export class ArrowsBuilder extends FloorSaver implements Builder
     } else {
       if (!maze.isBuilt())
       {
-        maze.Built();
-
         // princess and player are placed at the extremities of the diameter
         // of the maze
-        maze.setPlayer(bfs(maze.getNode(0)));
-        maze.setPrincess(bfs(maze.getPlayer()));
+        maze.setPrincess(searchFarthestNode(maze.getPlayer()));
 
         // more confortable for player
         maze.useInteruptor();
+
+        maze.Built();
       }
     }
   }

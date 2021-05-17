@@ -10,6 +10,8 @@ export class MazeNode
 
   public parents: MazeNode;
   public children: Array<MazeNode>;
+  public root: Array<MazeNode>;
+
   public weight: number;
 
   constructor(x: number, y: number, z: number)
@@ -21,7 +23,9 @@ export class MazeNode
 
     this.parents = this;
     this.children = [];
-    this.weight = 0;
+    this.root = [];
+
+    this.weight = -1;
   }
 
   isEqual(node: MazeNode): boolean
@@ -38,6 +42,37 @@ export class MazeNode
     } else {
       return this.children.concat([this.parents]);
     }
+  }
+
+  getNearestIntersection(): Array<MazeNode>
+  {
+    let lastNode: MazeNode;
+    let intersections: Array<MazeNode> = [];
+    this.getNeighbourhood().forEach(neighbour => {
+      lastNode = this;
+      if (neighbour.weight === -1)
+      {
+        neighbour.weight = this.weight + 1;
+      }
+      while (neighbour.children.length === 1)
+      {
+        if (neighbour.parents.isEqual(lastNode) &&
+          (neighbour.parents.t === lastNode.t))
+        {
+          lastNode = neighbour;
+          neighbour = neighbour.children[0];
+        } else {
+          lastNode = neighbour;
+          neighbour = neighbour.parents;
+        }
+        if (neighbour.weight === -1)
+        {
+          neighbour.weight = lastNode.weight + 1;
+        }
+      }
+      intersections.push(neighbour);
+    });
+    return intersections;
   }
 
   possible2DNeighbourhood(): Array<MazeNode>
@@ -122,25 +157,33 @@ export class MazeNode
   }
 }
 
-export function bfs(root: MazeNode): MazeNode
+export function searchFarthestNode(node: MazeNode): MazeNode
 {
-  root.weight = 0;
-  let queue: Array<MazeNode> = [root];
+  node.weight = 0;
+  let index: number = 0;
+  let maxWeight: number = 0;
+
+  let queue: Array<MazeNode> = [node];
   let currentNode: MazeNode;
-  let visited: Array<MazeNode> = [root];
+  let visited: Array<MazeNode> = [node];
   while (queue.length > 0)
   {
     currentNode = queue.splice(0, 1)[0];
-    for (let neighbour of currentNode.getNeighbourhood())
+    for (let neighbour of currentNode.getNearestIntersection())
     {
       if (!visited.some(element => neighbour.isEqual(element) &&
         (element.t === neighbour.t)))
       {
-        neighbour.weight = currentNode.weight + 1;
         visited.push(neighbour);
         queue.push(neighbour);
+
+        if (neighbour.weight > maxWeight)
+        {
+          maxWeight = neighbour.weight;
+          index = visited.length - 1;
+        }
       }
     }
   }
-  return visited[visited.length - 1];
+  return visited[index];
 }

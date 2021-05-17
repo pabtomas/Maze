@@ -1,7 +1,7 @@
 import { ensure, getRandomInt } from './util';
 import { FloorSaver, Builder } from './builder';
 import { KeysGenerator } from './keysgenerator';
-import { MazeNode, bfs } from './mazenode';
+import { MazeNode, searchFarthestNode } from './mazenode';
 import { Maze } from './maze';
 
 export class StairsBuilder extends FloorSaver implements Builder
@@ -26,6 +26,7 @@ export class StairsBuilder extends FloorSaver implements Builder
     // Init the maze with a random starting node
     let startingNode = new MazeNode(getRandomInt(maze.getWidth()),
       getRandomInt(maze.getHeight()), getRandomInt(maze.getFloor()));
+    startingNode.root = [startingNode];
     let neighbours = this.computeNeighbours(maze, startingNode);
     maze.addNode(startingNode);
     this.walls = this.walls.concat(neighbours);
@@ -59,31 +60,27 @@ export class StairsBuilder extends FloorSaver implements Builder
     } else {
       if (!maze.isBuilt())
       {
-        maze.Built();
-
         // princess and player are placed at the extremities of the diameter
         // of the maze
-        maze.setPlayer(bfs(maze.getNode(0)));
-        maze.setPrincess(bfs(maze.getPlayer()));
+        maze.setPrincess(searchFarthestNode(maze.getPlayer()));
 
         let keysGenerator: KeysGenerator = new KeysGenerator();
         let fullSolution: Array<MazeNode> =
           maze.searchSolution(maze.getPrincess());
 
-        let doorStep: number = 3;
-        /*let doorStep: number;
+        let doorStep: number;
         if (maze.getLevel() < 10)
         {
           doorStep = 30;
         } else {
           doorStep = 30 + maze.getLevel();
-        }*/
+        }
 
         // a new door can be placed every 'doorStep' nodes of the solution
+        let weight: number = 1;
         for (let node of fullSolution)
         {
-          if ((Math.floor((node.weight + 1) / doorStep) * doorStep ===
-            node.weight) && (node.weight != 0))
+          if (Math.floor(weight / doorStep) * doorStep === weight)
           {
             // if between the last added door and the possibly next door there
             // aren't new intersection, the possibly next door isn't added
@@ -93,6 +90,7 @@ export class StairsBuilder extends FloorSaver implements Builder
               maze.addDoor(node);
             }
           }
+          ++weight;
         }
 
         // adding starting position of the maze will be useful for key
@@ -105,6 +103,8 @@ export class StairsBuilder extends FloorSaver implements Builder
             keysGenerator.generateKeys(maze, fullSolution);
           maze.setKeys(keys);
         }
+
+        maze.Built();
       }
     }
   }
@@ -132,6 +132,12 @@ export class StairsBuilder extends FloorSaver implements Builder
     let parents: MazeNode = ensure(maze.getNodes().find(
       element => neighbours.some(neighbour => element.isEqual(neighbour))));
     node.parents = parents;
+    node.root = node.parents.root.concat([node]);
     node.parents.children.push(node);
+
+    if (node.root.length > maze.getPlayer().root.length)
+    {
+      maze.setPlayer(node);
+    }
   }
 }
