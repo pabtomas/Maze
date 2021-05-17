@@ -123,7 +123,8 @@ export class Drawer
     let year: number = maze.getYear();
 
     context.lineWidth = nodeSize / 10;
-    let a: number = 0.75 * (nodeSize / 20);
+    let a: number;
+    let b: number;
     let double: boolean = false;
     let centerX: number;
     let centerY: number;
@@ -185,14 +186,20 @@ export class Drawer
           if (future && past)
           {
             context.strokeStyle = PORTAL_COLOR;
+            spiralStart = 60;
+            spiralEnd = 120;
+            a = 0.19;
+            b = nodeSize / 20;
           } else if (past) {
             context.strokeStyle = PASTPORTAL_COLOR;
             spiralStart = -135;
             spiralEnd = 0;
+            a = 0.75 * (nodeSize / 20);
           } else if (future) {
             context.strokeStyle = FUTUREPORTAL_COLOR;
             spiralStart = 0;
             spiralEnd = 108;
+            a = 0.75 * (nodeSize / 20);
           }
         }
 
@@ -201,16 +208,40 @@ export class Drawer
 
         if (future && past)
         {
+          centerX = node.x * nodeSize + nodeSize / 2;
+          centerY = node.y * nodeSize + nodeSize / 2;
+
+          context.moveTo(centerX, centerY);
           context.beginPath();
-          context.arc(node.x * nodeSize + nodeSize / 2,
-            node.y * nodeSize + nodeSize / 2, nodeSize / 2.5, 0,
-            2 * Math.PI, false);
+
+          for (let i = spiralEnd; i > spiralStart; i--)
+          {
+            angle = 0.1 * i;
+            x = centerX + (a + b * Math.exp(a * angle)) * Math.cos(angle);
+            y = centerY + (a + b * Math.exp(a * angle)) * Math.sin(angle);
+            context.lineTo(x, y);
+          }
+          context.stroke();
+
+          centerX = node.x * nodeSize + nodeSize / 2;
+          centerY = node.y * nodeSize + nodeSize / 2;
+
+          context.moveTo(centerX, centerY);
+          context.beginPath();
+
+          for (let i = spiralStart; i < spiralEnd; i++)
+          {
+            angle = 0.1 * i;
+            x = centerX + (a + b * Math.exp(a * angle))
+              * Math.cos(angle + Math.PI);
+            y = centerY + (a + b * Math.exp(a * angle))
+              * Math.sin(angle + Math.PI);
+            context.lineTo(x, y);
+          }
           context.stroke();
 
           context.beginPath();
-          context.arc(node.x * nodeSize + nodeSize / 2,
-            node.y * nodeSize + nodeSize / 2, nodeSize / 5, 0,
-            2 * Math.PI, false);
+          context.arc(centerX, centerY, nodeSize / 6, 0, 2 * Math.PI, false);
           context.stroke();
 
         } else if (future || past) {
@@ -418,6 +449,7 @@ export class Drawer
   {
     if (maze.getKeys().length > 0)
     {
+      let nodeSize: number = this.nodeSize;
       let viewer: number = maze.getViewer();
       let year: number = maze.getYear();
       let key: MazeNode = maze.getKey();
@@ -425,6 +457,7 @@ export class Drawer
         (key.t === year))
       {
         context.fillStyle = KEY_COLOR;
+        context.lineWidth = nodeSize / 10;
         context.beginPath();
         context.moveTo(key.x * this.nodeSize + this.nodeSize / 2,
           key.y * this.nodeSize + this.nodeSize / 6);
