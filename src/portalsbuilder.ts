@@ -1,6 +1,6 @@
 import { ensure, getRandomInt, range, shuffle } from './util';
 import { FloorSaver, Builder } from './builder';
-import { MazeNode, searchFarthestNode } from './mazenode';
+import { MazeNode, bfs } from './mazenode';
 import { Maze, NODESPERYEAR } from './maze';
 
 export class PortalsBuilder extends FloorSaver implements Builder
@@ -202,7 +202,14 @@ export class PortalsBuilder extends FloorSaver implements Builder
             // princess and player are placed at the extremities of the diameter
             // of the maze
             maze.setPlayer(maze.getPlayer());
-            maze.setPrincess(searchFarthestNode(maze.getPlayer()));
+            maze.setPrincess(maze.searchFarthestNode(maze.getPlayer()));
+
+            if (maze.getPlayer().t < maze.getPrincess().t)
+            {
+              let backup: MazeNode = maze.getPlayer();
+              maze.setPlayer(maze.getPrincess());
+              maze.setPrincess(backup);
+            }
 
             maze.Built();
           }

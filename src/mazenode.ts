@@ -13,6 +13,7 @@ export class MazeNode
   public root: Array<MazeNode>;
 
   public weight: number;
+  public isDeadEnd: boolean;
 
   constructor(x: number, y: number, z: number)
   {
@@ -26,6 +27,7 @@ export class MazeNode
     this.root = [];
 
     this.weight = -1;
+    this.isDeadEnd = false;
   }
 
   isEqual(node: MazeNode): boolean
@@ -44,33 +46,29 @@ export class MazeNode
     }
   }
 
-  getNearestIntersection(): Array<MazeNode>
+  getNearestIntersections(): Array<MazeNode>
   {
     let lastNode: MazeNode;
     let intersections: Array<MazeNode> = [];
-    this.getNeighbourhood().forEach(neighbour => {
-      lastNode = this;
-      if (neighbour.weight === -1)
-      {
-        neighbour.weight = this.weight + 1;
-      }
-      while (neighbour.children.length === 1)
-      {
-        if (neighbour.parents.isEqual(lastNode) &&
-          (neighbour.parents.t === lastNode.t))
-        {
-          lastNode = neighbour;
-          neighbour = neighbour.children[0];
-        } else {
-          lastNode = neighbour;
-          neighbour = neighbour.parents;
-        }
+
+    // filter dead ends and neighbours without current node as neighbour
+    this.getNeighbourhood().filter(n => !n.isDeadEnd &&
+      n.getNeighbourhood().some(m => m.isEqual(this))).forEach(neighbour => {
         if (neighbour.weight === -1)
         {
-          neighbour.weight = lastNode.weight + 1;
+          lastNode = this;
+          neighbour.weight = this.weight + 1;
+          while (neighbour.getNeighbourhood().filter(n => !n.isDeadEnd &&
+            n.getNeighbourhood().some(m => m.isEqual(neighbour))).length === 2)
+          {
+            lastNode = neighbour;
+            neighbour = ensure(neighbour.getNeighbourhood()
+              .filter(n => !n.isDeadEnd && n.getNeighbourhood()
+                .some(m => m.isEqual(neighbour))).find(n => n.weight === -1));
+            neighbour.weight = lastNode.weight + 1;
+          }
+          intersections.push(neighbour);
         }
-      }
-      intersections.push(neighbour);
     });
     return intersections;
   }
@@ -157,33 +155,23 @@ export class MazeNode
   }
 }
 
-export function searchFarthestNode(node: MazeNode): MazeNode
+export function bfs(root: MazeNode): MazeNode
 {
-  node.weight = 0;
-  let index: number = 0;
-  let maxWeight: number = 0;
-
-  let queue: Array<MazeNode> = [node];
+  let queue: Array<MazeNode> = [root];
   let currentNode: MazeNode;
-  let visited: Array<MazeNode> = [node];
+  let visited: Array<MazeNode> = [root];
   while (queue.length > 0)
   {
     currentNode = queue.splice(0, 1)[0];
-    for (let neighbour of currentNode.getNearestIntersection())
+    for (let neighbour of currentNode.getNeighbourhood())
     {
       if (!visited.some(element => neighbour.isEqual(element) &&
         (element.t === neighbour.t)))
       {
         visited.push(neighbour);
         queue.push(neighbour);
-
-        if (neighbour.weight > maxWeight)
-        {
-          maxWeight = neighbour.weight;
-          index = visited.length - 1;
-        }
       }
     }
   }
-  return visited[index];
+  return visited[visited.length - 1];
 }

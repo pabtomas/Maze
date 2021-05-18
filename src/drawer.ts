@@ -271,7 +271,7 @@ export class Drawer
     let viewer: number = maze.getViewer();
     let year: number = maze.getYear();
     maze.getIce().forEach(node => {
-      if ((node.z === viewer) && (node.t === year))
+      if ((node.z === viewer) && (node.t === year) && !node.isDeadEnd)
       {
         context.fillStyle = ICE_COLOR;
         context.fillRect(node.x * nodeSize, node.y * nodeSize,

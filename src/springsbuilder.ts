@@ -1,7 +1,7 @@
 import { ensure, getRandomInt } from './util';
 import { FloorSaver, Builder } from './builder';
 import { KeysGenerator } from './keysgenerator';
-import { MazeNode, searchFarthestNode } from './mazenode';
+import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
 const SPRING_SPAWN: number = 0.1;
@@ -58,7 +58,7 @@ export class SpringsBuilder extends FloorSaver implements Builder
           nodeIndex = this.walls.length - 1;
           this.visited.push(newSpring);
         } else {
-          return;
+          nodeIndex = getRandomInt(this.walls.length);
         }
       } else {
         // randomized the Prim algorithm.
@@ -86,7 +86,7 @@ export class SpringsBuilder extends FloorSaver implements Builder
       {
         // princess and player are placed at the extremities of the diameter
         // of the maze
-        maze.setPrincess(searchFarthestNode(maze.getPlayer()));
+        maze.setPrincess(maze.searchFarthestNode(maze.getPlayer()));
 
         let keysGenerator: KeysGenerator = new KeysGenerator();
         let fullSolution: Array<MazeNode> =

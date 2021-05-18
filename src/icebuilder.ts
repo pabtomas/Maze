@@ -1,6 +1,6 @@
 import { ensure, getRandomInt, range } from './util';
 import { FloorSaver, Builder } from './builder';
-import { MazeNode, searchFarthestNode } from './mazenode';
+import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
 export class IceBuilder extends FloorSaver implements Builder
@@ -71,23 +71,43 @@ export class IceBuilder extends FloorSaver implements Builder
 
       if (!isCyclic)
       {
-        for (let node of iceNodes)
+        if (iceNodes.length > 0)
         {
-          maze.addIce(node);
-          if (this.walls.some(wall => wall.isEqual(node)))
+          // give parents and children for each icenode
+          for (let i = 0; i < iceNodes.length; ++i)
           {
-            this.walls.splice(this.walls.findIndex(
-              element => element.isEqual(node)), 1);
+            if (i > 0)
+            {
+              iceNodes[i].parents = iceNodes[i - 1];
+            } else {
+              iceNodes[i].parents = currentNode.parents;
+              iceNodes[i].parents.children.push(iceNodes[i]);
+            }
+            iceNodes[i].root = iceNodes[i].parents.root.concat([iceNodes[i]]);
+            if (i < iceNodes.length - 1)
+            {
+              iceNodes[i].children.push(iceNodes[i + 1]);
+            } else {
+              iceNodes[i].children.push(currentNode);
+              currentNode.parents = iceNodes[i];
+            }
+
+            maze.addIce(iceNodes[i]);
+            if (this.walls.some(wall => wall.isEqual(iceNodes[i])))
+            {
+              this.walls.splice(this.walls.findIndex(
+                element => element.isEqual(iceNodes[i])), 1);
+            }
           }
+        } else {
+          currentNode.parents.children.push(currentNode);
         }
 
         let walls: Array<MazeNode> = this.computeNeighbours(maze, currentNode);
 
         maze.addNode(currentNode);
         this.walls = this.walls.concat(walls);
-        currentNode.parents.children.push(currentNode);
 
-        // give root only for maze nodes
         currentNode.root = currentNode.parents.root.concat([currentNode]);
         if (currentNode.root.length > maze.getPlayer().root.length)
         {
@@ -110,9 +130,51 @@ export class IceBuilder extends FloorSaver implements Builder
     } else {
       if (!maze.isBuilt())
       {
+        let parents: MazeNode;
+        let undiscoveredNeighbours: Array<MazeNode>;
+
+        // give parents for nodes in a dead end
+        for (let i: number = 0; i < maze.getNodes().length; ++i)
+        {
+          undiscoveredNeighbours = maze.getNode(i).possible2DNeighbourhood()
+            .filter(n => !maze.getNode(i).getNeighbourhood().some(
+              neighbour => neighbour.isEqual(n)) && maze.isIce(n));
+          for (let ice of undiscoveredNeighbours)
+          {
+            parents = maze.getNode(i);
+            do
+            {
+              ice.isDeadEnd = true;
+              ice.parents = parents;
+              parents.children.push(ice);
+              ice.root = parents.root.concat([ice]);
+              maze.addIce(ice);
+
+              parents = ice;
+
+              if (ice.parents.x === ice.x)
+              {
+                if (ice.parents.y < ice.y)
+                {
+                  ice = new MazeNode(ice.x, ice.y + 1, ice.z);
+                } else if (ice.parents.y > ice.y) {
+                  ice = new MazeNode(ice.x, ice.y - 1, ice.z);
+                }
+              } else if (ice.parents.y === ice.y) {
+                if (ice.parents.x < ice.x)
+                {
+                  ice = new MazeNode(ice.x + 1, ice.y, ice.z);
+                } else if (ice.parents.x > ice.x) {
+                  ice = new MazeNode(ice.x - 1, ice.y, ice.z);
+                }
+              }
+            } while (maze.isIce(ice))
+          }
+        }
+
         // princess and player are placed at the extremities of the diameter
         // of the maze
-        maze.setPrincess(searchFarthestNode(maze.getPlayer()));
+        maze.setPrincess(maze.searchFarthestNode(maze.getPlayer()));
 
         maze.Built();
       }
@@ -182,16 +244,14 @@ export class IceBuilder extends FloorSaver implements Builder
             secondNode = node;
           }
         }
-        let path: Array<MazeNode> = firstNode.between(secondNode);
-        let isNotInMaze = !maze.isIce(ice) && !maze.isNode(ice);
-        maze.addIce(ice);
+        let path: Array<MazeNode> =
+          firstNode.between(secondNode).filter(node => !node.isEqual(ice));
+        let isNotInMaze: boolean = !maze.isIce(ice) && !maze.isNode(ice);
 
         if (path.every(node => maze.isIce(node)) && isNotInMaze)
         {
-          maze.popIce();
           return true;
         }
-        maze.popIce();
       }
     }
     return false;

@@ -1,6 +1,6 @@
-import { getRandomInt, range } from './util';
+import { ensure, getRandomInt, range } from './util';
 import { FloorSaver, Builder } from './builder';
-import { MazeNode, searchFarthestNode } from './mazenode';
+import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
 export class ArrowsBuilder extends FloorSaver implements Builder
@@ -110,12 +110,24 @@ export class ArrowsBuilder extends FloorSaver implements Builder
     } else {
       if (!maze.isBuilt())
       {
+        let undiscoveredNeighbours: Array<MazeNode>;
+
+        // give parents for arrows with several parents
+        for (let i: number = 0; i < maze.getNodes().length; ++i)
+        {
+          undiscoveredNeighbours = maze.getNode(i).possible2DNeighbourhood()
+            .filter(n => !maze.getNode(i).getNeighbourhood().some(
+              neighbour => neighbour.isEqual(n)) && maze.isArrow(n));
+          for (let arrow of undiscoveredNeighbours)
+          {
+            arrow = ensure(maze.getArrows().find(a => a.isEqual(arrow)));
+            maze.getNode(i).children.push(arrow);
+          }
+        }
+
         // princess and player are placed at the extremities of the diameter
         // of the maze
-        maze.setPrincess(searchFarthestNode(maze.getPlayer()));
-
-        // more confortable for player
-        maze.useInteruptor();
+        maze.setPrincess(maze.searchFarthestNode(maze.getPlayer()));
 
         maze.Built();
       }

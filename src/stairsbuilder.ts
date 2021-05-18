@@ -1,7 +1,7 @@
 import { ensure, getRandomInt } from './util';
 import { FloorSaver, Builder } from './builder';
 import { KeysGenerator } from './keysgenerator';
-import { MazeNode, searchFarthestNode } from './mazenode';
+import { MazeNode, bfs } from './mazenode';
 import { Maze } from './maze';
 
 export class StairsBuilder extends FloorSaver implements Builder
@@ -62,7 +62,7 @@ export class StairsBuilder extends FloorSaver implements Builder
       {
         // princess and player are placed at the extremities of the diameter
         // of the maze
-        maze.setPrincess(searchFarthestNode(maze.getPlayer()));
+        maze.setPrincess(maze.searchFarthestNode(maze.getPlayer()));
 
         let keysGenerator: KeysGenerator = new KeysGenerator();
         let fullSolution: Array<MazeNode> =

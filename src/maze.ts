@@ -69,7 +69,7 @@ export class Maze
     this.built = false;
     this.solved = false;
 
-    this.interuptor = false;
+    this.interuptor = true;
 
     this.years = [];
     this.year = 0;
@@ -99,7 +99,7 @@ export class Maze
     this.built = false;
     this.solved = false;
 
-    this.interuptor = false;
+    this.interuptor = true;
 
     this.years = [];
     this.year = 0;
@@ -133,6 +133,7 @@ export class Maze
 
   Built(): void
   {
+    this.timeLastPlayerMove = Date.now();
     this.built = true;
   }
 
@@ -296,6 +297,7 @@ export class Maze
 
   Solved(goal: MazeNode): void
   {
+    this.timeLastPlayerMove = Date.now();
     this.solution = this.searchSolution(goal);
     this.solved = true;
   }
@@ -341,11 +343,6 @@ export class Maze
     this.ice.push(node);
   }
 
-  popIce(): void
-  {
-    this.ice.pop();
-  }
-
   getIce(): Array<MazeNode>
   {
     return this.ice;
@@ -388,6 +385,7 @@ export class Maze
 
   useInteruptor(): void
   {
+    this.timeLastPlayerMove = Date.now();
     this.interuptor = !this.interuptor;
   }
 
@@ -453,9 +451,7 @@ export class Maze
   {
     this.timeLastPlayerMove = Date.now();
     this.lastPlayerPos = this.player;
-    this.setPlayer(ensure(this.nodes.concat(this.ice).concat(this.arrows)
-      .find(element => element.isEqual(neighbour) &&
-        (element.t === neighbour.t))));
+    this.setPlayer(neighbour);
 
     if (this.doors.length > 0)
     {
@@ -477,29 +473,19 @@ export class Maze
     // update solution automatically after a player move
     if (this.solved)
     {
-      if (this.ice.length === 0)
+      let goal: MazeNode;
+      if (this.doors.length === 0)
       {
-        let goal: MazeNode;
-        if (this.doors.length === 0)
-        {
-          goal = this.princess;
-        } else {
-          if (this.canPlayerUnlockDoors())
-          {
-            goal = this.doors[0];
-          } else {
-            goal = this.keys[0];
-          }
-        }
-        this.solution = this.searchSolution(goal);
+        goal = this.princess;
       } else {
-        if (this.solution[0].isEqual(this.player))
+        if (this.canPlayerUnlockDoors())
         {
-          this.solution.splice(0, 1);
+          goal = this.doors[0];
         } else {
-          this.solution = [this.lastPlayerPos].concat(this.solution);
+          goal = this.keys[0];
         }
       }
+      this.solution = this.searchSolution(goal);
     }
   }
 
@@ -511,12 +497,17 @@ export class Maze
 
     // filter same nodes between 2 paths
     let sameMazeNodes: Array<MazeNode> = goal.root.filter(node =>
-      player.root.some(
-        element => element.isEqual(node) && (element.t === node.t)));
+      player.root.some(element => element.isEqual(node) &&
+        (element.t === node.t) && element.parents.isEqual(node.parents)
+        && (element.parents.t === node.parents.t)));
     goalRoot = goal.root.filter(node => !(sameMazeNodes.some(element =>
-      element.isEqual(node) && (element.t === node.t))));
+      element.isEqual(node) && (element.t === node.t) &&
+        element.parents.isEqual(node.parents) &&
+        (element.parents.t === node.parents.t))));
     playerRoot = player.root.filter(node => !(sameMazeNodes.some(element =>
-      element.isEqual(node) && (element.t === node.t)))).reverse();
+      element.isEqual(node) && (element.t === node.t) &&
+        element.parents.isEqual(node.parents) &&
+        (element.parents.t === node.parents.t)))).reverse();
 
     // add the last same node to link the 2 paths
     if (sameMazeNodes.length > 0)
@@ -527,23 +518,39 @@ export class Maze
     // ordered solution
     let solution: Array<MazeNode> = playerRoot.concat(goalRoot);
 
-    // add ice nodes between nodes
-    if ((solution.length > 1) && (this.ice.length > 0))
+    solution = solution.filter(node => !(node.isEqual(this.player) &&
+      (this.player.t === node.t)));
+    return solution;
+  }
+
+  searchFarthestNode(node: MazeNode): MazeNode
+  {
+    node.weight = 0;
+    let index: number = 0;
+    let maxWeight: number = 0;
+
+    let queue: Array<MazeNode> = [node];
+    let currentNode: MazeNode;
+    let visited: Array<MazeNode> = [node];
+    while (queue.length > 0)
     {
-      for (let i: number = solution.length - 1; i > 0; --i)
+      currentNode = queue.splice(0, 1)[0];
+      for (let neighbour of currentNode.getNearestIntersections())
       {
-        for (let node of solution[i - 1].between(solution[i]))
+        if (!visited.some(element => neighbour.isEqual(element) &&
+          (element.t === neighbour.t)))
         {
-          if (this.ice.some(ice => ice.isEqual(node)))
+          visited.push(neighbour);
+          queue.push(neighbour);
+
+          if (neighbour.weight > maxWeight)
           {
-            solution.splice(i, 0, node);
+            maxWeight = neighbour.weight;
+            index = visited.length - 1;
           }
         }
       }
     }
-
-    solution = solution.filter(node => !(node.isEqual(this.player) &&
-      (this.player.t === node.t)));
-    return solution;
+    return visited[index];
   }
 }

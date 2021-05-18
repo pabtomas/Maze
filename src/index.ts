@@ -35,7 +35,7 @@ launchAnimation();
 // https://stackoverflow.com/questions/37476437/how-to-render-html5-canvas-within-a-loop
 // ------------------------------------
 
-function skatingAnimation(maze: Maze): void
+function skatingOnIceAnimation(maze: Maze): void
 {
   let newPos: MazeNode = maze.getPlayer();
   let player: MazeNode = maze.getPlayer();
@@ -58,9 +58,11 @@ function skatingAnimation(maze: Maze): void
         newPos = new MazeNode(player.x - 1, player.y, player.z);
       }
     }
-    if (maze.getNodes().concat(maze.getIce())
-      .some(node => node.isEqual(newPos)))
+    if (player.getNeighbourhood().some(
+      neighbour => neighbour.isEqual(newPos)))
     {
+      newPos = ensure(player.getNeighbourhood().find(
+        neighbour => neighbour.isEqual(newPos)));
       maze.movePlayer(newPos);
     } else {
       maze.setLastPlayerPos(newPos);
@@ -68,7 +70,7 @@ function skatingAnimation(maze: Maze): void
   }
 }
 
-function displacementAnimation(maze: Maze): void
+function skatingOnArrowsAnimation(maze: Maze): void
 {
   if (maze.isPlayerOnArrow() &&
     (Date.now() - maze.getTimeLastPlayerMove() > 100))
@@ -109,8 +111,8 @@ function animate(now: number): void
 
   builders[currentBuilder].update(maze);
 
-  skatingAnimation(maze);
-  displacementAnimation(maze);
+  skatingOnIceAnimation(maze);
+  skatingOnArrowsAnimation(maze);
 
   buildNewLevel(maze);
 
@@ -151,19 +153,8 @@ window.addEventListener('keydown', function(event) {
   switch (event.key)
   {
     case 'ArrowLeft':
-      neighbour = maze.getNodes().find(node => (node.t === player.t) &&
-        node.isEqual(new MazeNode(player.x - 1, player.y, player.z)));
-
-      if (!neighbour)
-      {
-        neighbour = maze.getIce().find(ice => (ice.t === player.t) &&
-          ice.isEqual(new MazeNode(player.x - 1, player.y, player.z)));
-      }
-      if (!neighbour)
-      {
-        neighbour = maze.getArrows().find(arrow => (arrow.t === player.t) &&
-          arrow.isEqual(new MazeNode(player.x - 1, player.y, player.z)));
-      }
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x - 1, player.y, player.z)));
 
       if (neighbour)
       {
@@ -175,19 +166,8 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'ArrowUp':
-      neighbour = maze.getNodes().find(node => (node.t === player.t) &&
-        node.isEqual(new MazeNode(player.x, player.y - 1, player.z)));
-
-      if (!neighbour)
-      {
-        neighbour = maze.getIce().find(ice => (ice.t === player.t) &&
-          ice.isEqual(new MazeNode(player.x, player.y - 1, player.z)));
-      }
-      if (!neighbour)
-      {
-        neighbour = maze.getArrows().find(arrow => (arrow.t === player.t) &&
-          arrow.isEqual(new MazeNode(player.x, player.y - 1, player.z)));
-      }
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x, player.y - 1, player.z)));
 
       if (neighbour)
       {
@@ -199,53 +179,35 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'PageDown':
-      neighbour = maze.getNodes().find(node => (node.t === player.t) &&
-        node.isEqual(new MazeNode(player.x, player.y, player.z - 1)));
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x, player.y, player.z - 1)));
 
       if (neighbour)
       {
-        if (player.getNeighbourhood().some(
-          n => n.isEqual(ensure(neighbour)) && (ensure(neighbour).t === n.t)))
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
         {
-          if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
-            maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
-          {
-            maze.movePlayer(neighbour);
-          }
+          maze.movePlayer(neighbour);
         }
       }
       break;
     case 'Backspace':
-      neighbour = maze.getNodes().find(node => (node.t === player.t - 1) &&
+      neighbour = player.getNeighbourhood().find(node =>
+        (node.t === player.t - 1) &&
         node.isEqual(new MazeNode(player.x, player.y, player.z)));
 
       if (neighbour)
       {
-        if (player.getNeighbourhood().some(
-          n => n.isEqual(ensure(neighbour)) && (ensure(neighbour).t === n.t)))
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
         {
-          if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
-            maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
-          {
-            maze.movePlayer(neighbour);
-          }
+          maze.movePlayer(neighbour);
         }
       }
       break;
     case 'ArrowRight':
-      neighbour = maze.getNodes().find(node => (node.t === player.t) &&
-        node.isEqual(new MazeNode(player.x + 1, player.y, player.z)));
-
-      if (!neighbour)
-      {
-        neighbour = maze.getIce().find(ice => (ice.t === player.t) &&
-          ice.isEqual(new MazeNode(player.x + 1, player.y, player.z)));
-      }
-      if (!neighbour)
-      {
-        neighbour = maze.getArrows().find(arrow => (arrow.t === player.t) &&
-          arrow.isEqual(new MazeNode(player.x + 1, player.y, player.z)));
-      }
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x + 1, player.y, player.z)));
 
       if (neighbour)
       {
@@ -257,19 +219,8 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'ArrowDown':
-      neighbour = maze.getNodes().find(node => (node.t === player.t) &&
-        node.isEqual(new MazeNode(player.x, player.y + 1, player.z)));
-
-      if (!neighbour)
-      {
-        neighbour = maze.getIce().find(ice => (ice.t === player.t) &&
-          ice.isEqual(new MazeNode(player.x, player.y + 1, player.z)));
-      }
-      if (!neighbour)
-      {
-        neighbour = maze.getArrows().find(arrow => (arrow.t === player.t) &&
-          arrow.isEqual(new MazeNode(player.x, player.y + 1, player.z)));
-      }
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x, player.y + 1, player.z)));
 
       if (neighbour)
       {
@@ -281,36 +232,29 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 'PageUp':
-      neighbour = maze.getNodes().find(node => (node.t === player.t) &&
-        node.isEqual(new MazeNode(player.x, player.y, player.z + 1)));
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x, player.y, player.z + 1)));
 
       if (neighbour)
       {
-        if (player.getNeighbourhood().some(
-          n => n.isEqual(ensure(neighbour)) && (ensure(neighbour).t === n.t)))
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
         {
-          if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
-            maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
-          {
-            maze.movePlayer(neighbour);
-          }
+          maze.movePlayer(neighbour);
         }
       }
       break;
     case '=':
-      neighbour = maze.getNodes().find(node => (node.t === player.t + 1) &&
+      neighbour = player.getNeighbourhood().find(node =>
+        (node.t === player.t + 1) &&
         node.isEqual(new MazeNode(player.x, player.y, player.z)));
 
       if (neighbour)
       {
-        if (player.getNeighbourhood().some(
-          n => n.isEqual(ensure(neighbour)) && (ensure(neighbour).t === n.t)))
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
         {
-          if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
-            maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow())
-          {
-            maze.movePlayer(neighbour);
-          }
+          maze.movePlayer(neighbour);
         }
       }
       break;
