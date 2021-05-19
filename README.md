@@ -25,7 +25,7 @@ This Maze is an <b>Easy Maze</b>. Finding easy mazes is only possible below leve
 
 </br>
 
-|<img src="/media/images/stairsmaze_floor1.png"/>|<img src="/media/images/stairsmaze_floor2.png"/>|<img src="/media/images/stairsmaze_floor3.png"/>|
+|<img src="/media/images/stairsmaze_floor0.png"/>|<img src="/media/images/stairsmaze_floor1.png"/>|<img src="/media/images/stairsmaze_floor2.png"/>|
 |:------------:|:-------------:|:-----------:|
 | Floor 0 | Floor 1 | Floor 2 |
 
@@ -97,7 +97,7 @@ The player have an interuptor on him to reverse arrow directions when used.</br>
 
 |<img src="/media/images/portalsmaze_year0.png"/>|<img src="/media/images/portalsmaze_year2.png"/>|<img src="/media/images/portalsmaze_year3.png"/>|
 |:------------:|:-------------:|:-----------:|
-| Year 0 | Year 2 | Year 3 |
+| Year 0 | Year 1 | Year 3 |
 
 </br>
 
@@ -110,7 +110,7 @@ The player can unlock this type of maze by reaching level 10.
 </br>
 
 Each year 12 nodes are added to a portals maze but portals do not give access to each year of the maze.</br> 
-For example in the maze shown above, year 1 is unaccessible.</br> 
+For example in the maze shown above, year 2 is unaccessible.</br> 
 Passing through a portal do not move the player.
 
 ---
