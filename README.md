@@ -34,7 +34,7 @@ When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring<
 <i>Tips:</i></br>
 If the mouse is over a <i>Spring</i>, the maze will highlight the <i>Spring</i> and its <i>Linked Spring</i>.</br>
 
-|<img src="/media/images/icemaze1.gif"/>|<img src="/media/images/icemaze2.gif"/>|
+|<img src="/media/images/icemaze_skating.gif"/>|<img src="/media/images/icemaze_bouncing.gif"/>|
 |:------------:|:-------------:|
 |The <i>Player</i> skates until the next <i>White Square</i>|The <i>Player</i> bounces on <i>Walls</i> or <i>Maze Limits</i>|
 
