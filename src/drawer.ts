@@ -12,14 +12,14 @@ const DOOR_COLOR: string = 'black';
 const KEY_COLOR: string = 'gold';
 const SPRING_COLOR: string = 'orange';
 const LINKEDSPRING_COLOR: string = 'crimson';
-const ICE_COLOR: string = '#80f2ff';
+const ICE_COLOR: string = 'rgb(128, 244, 255)';
 const ARROW_COLOR: string = 'navy';
 const LEFTARROW_COLOR: string = 'red';
 const RIGHTARROW_COLOR: string = 'dodgerblue';
 const TOPARROW_COLOR: string = 'gold';
 const DOWNARROW_COLOR: string = 'limegreen';
 const PASTPORTAL_COLOR: string = 'dodgerblue';
-const FUTUREPORTAL_COLOR: string = 'red';
+const FUTUREPORTAL_COLOR: string = 'rgb(255, 53, 94)';
 const PORTAL_COLOR: string = 'blueviolet';
 const TRANSPARENT: string = 'rgba(0, 0, 0, 0)';
 
@@ -193,13 +193,13 @@ export class Drawer
             b = nodeSize / 20;
           } else if (past) {
             context.strokeStyle = PASTPORTAL_COLOR;
-            spiralStart = -135;
+            spiralStart = -133;
             spiralEnd = 0;
             a = 0.75 * (nodeSize / 20);
           } else if (future) {
             context.strokeStyle = FUTUREPORTAL_COLOR;
             spiralStart = 0;
-            spiralEnd = 108;
+            spiralEnd = 117;
             a = 0.75 * (nodeSize / 20);
           }
         }
@@ -246,8 +246,8 @@ export class Drawer
           context.stroke();
 
         } else if (future || past) {
-          centerX = node.x * nodeSize + nodeSize / 2;
-          centerY = node.y * nodeSize + nodeSize / 2;
+          centerX = node.x * nodeSize + nodeSize / 2 + nodeSize / 20;
+          centerY = node.y * nodeSize + nodeSize / 2 + nodeSize / 20;
 
           context.moveTo(centerX, centerY);
           context.beginPath();
@@ -384,7 +384,7 @@ export class Drawer
     if (maze.isBuilt() && (princess.z === viewer) && (princess.t === year))
     {
       let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
-      if (elapsedTime > 2000)
+      if (elapsedTime > 1000)
       {
         while (elapsedTime > 1000)
         {
@@ -499,7 +499,7 @@ export class Drawer
     if (maze.isBuilt() && (player.z === viewer) && (player.t === year))
     {
       let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
-      if (elapsedTime > 2000)
+      if (elapsedTime > 1000)
       {
         while (elapsedTime > 1000)
         {
@@ -535,7 +535,7 @@ export class Drawer
       let nextNode: MazeNode;
 
       let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
-      if (elapsedTime > 2000)
+      if (elapsedTime > 1000)
       {
         while (elapsedTime > 1000)
         {
