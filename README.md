@@ -1,57 +1,236 @@
 # Maze
+
+### Easy Maze
+
+</br>
+
 <img src="/media/images/easymaze.png">
 
-This Maze is an <i>Easy Maze</i>. Finding <i>Easy Maze</i> is only possible below Level 10.</br></br>
-The <i>Red Circle</i> is the <i>Player</i>. Press the arrows' keyboard to move him.</br>
-The <i>Pink Square</i> is the <i>Princess</i>. The <i>Player</i> has to rescue her to finish the maze.</br>
-The <i>Black Areas</i> are <i>Walls</i>. The <i>Player</i> can't pass through a <i>Wall</i>.</br>
-The <i>Black Locks</i> are <i>Locked Doors</i>. The <i>Yellow Rhombus</i> is a <i>Key</i>.</br>
-A new <i>Key</i> is generated when the <i>Player</i> unlocks a <i>Door</i></br>
-The <i>Player</i> can't pass through a <i>Locked Door</i>. The <i>Player</i> has to reach one <i>Key</i> to unlock one <i>Door</i>.</br>
+</br>
 
-<i>Tips:</i></br>
-Following the <i>Doors</i> is the best way to find the <i>Princess</i></br>
+This Maze is an <b>Easy Maze</b>. Finding easy mazes is only possible below level 10.
+* The <b>Red Circle</b> is the <b>Player</b>.
+* The <b>Pink Square</b> is the <b>Princess</b>. The player has to rescue the princess to finish the maze.
+* The <b>Black Areas</b> are <b>Walls</b>. The player can not pass through a wall.
+* The <b>Black Locks</b> are <b>Locked Doors</b>. The player can not pass through a locked door.
+* The <b>Yellow Rhombus</b> is a <b>Key</b>. The player has to reach one key to unlock one door.</br>A new key is generated when the player unlocks a door.
+
+</br>
+
+<b>Tip:</b> Following the doors is the best way to find the princess.</br>
+
+---
+
+### Stairs Maze
+
+</br>
 
 |<img src="/media/images/stairsmaze_floor1.png"/>|<img src="/media/images/stairsmaze_floor2.png"/>|<img src="/media/images/stairsmaze_floor3.png"/>|
 |:------------:|:-------------:|:-----------:|
-|<b>FLOOR 1</b>|<b>FLOOR 2</b>|<b>FLOOR 3</b>|
+| Floor 0 | Floor 1 | Floor 2 |
 
-This Maze is a <i>Stairs Maze</i>. A <i>Stairs Maze</i> is a 3D Maze. Unlocked by reaching Level 10.</br></br>
-The <i>Blue Squares</i> are <i>Down Stairs</i>. The <i>Player</i> can use it with the <i>PageDown</i> key.</br>
-The <i>Yellow Squares</i> are <i>Up Stairs</i>. The <i>Player</i> can use it with the <i>PageUp</i> key.</br>
-The <i>Green Squares</i> are <i>Up</i> and <i>Down Stairs</i>.</br>
+</br>
 
-<i>Tips:</i></br>
-Press the <i>Shift</i> and the <i>Control</i> keys to change the maze's floor.</br>
+This Maze is a <b>Stairs Maze</b>. A stairs maze is a 3D Maze where the player can find doors and keys.</br>
+The player can unlock this type of maze by reaching level 10.
+* The <b>Yellow Squares</b> are <b>Up Stairs</b>. The player can access higher floors by using up stairs.
+* The <b>Blue Squares</b> are <b>Down Stairs</b>. The player can access lower floors by using down stairs.
+* The <b>Green Squares</b> are <b>Bidirectional Stairs</b>. The player can access lower and higher floors by using bidirectional stairs.
+
+</br>
+
+Accessing a stair do not move the player.
+
+---
+
+### Springs Maze
+
+</br>
 
 <img src="/media/images/springsmaze.png">
 
-This Maze is a <i>Springs Maze</i>. Reach the Level 10 to unlock them. Unlocked by reaching Level 10.</br></br>
-The <i>Orange Squares</i> are <i>Springs</i>. A <i>Spring</i> is linked to another <i>Spring</i> (and only one).</br>
-The <i>Orange Square</i> with <i>Red Borders</i> is the <i>Linked Spring</i> of the <i>Spring</i> where the <i>Player</i> is.</br>
-When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring</i>. The <i>Player</i> can use a <i>Spring</i> with the <i>Space</i> bar.</br>
+</br>
 
-<i>Tips:</i></br>
-If the mouse is over a <i>Spring</i>, the maze will highlight the <i>Spring</i> and its <i>Linked Spring</i>.</br>
+This Maze is a <b>Springs Maze</b>. There are doors and keys in springs mazes.</br>
+The player can unlock this type of maze by reaching level 10.
+* The <b>Orange Squares</b> are <b>Springs</b>. A spring is linked to another spring (and only one).
+* The <b>Orange Square With Red Borders</b> is the <b>Linked Spring</b> of the spring where the player is on.</br>
+When the player uses a spring, the player is sent to its linked spring. 
+
+---
+
+### Ice Maze
+
+</br>
 
 |<img src="/media/images/icemaze_skating.gif"/>|<img src="/media/images/icemaze_bouncing.gif"/>|
 |:------------:|:-------------:|
-|The <i>Player</i> skates until the next <i>White Square</i>|The <i>Player</i> bounces on <i>Walls</i> or <i>Maze Limits</i>|
+| The player skates until the next white Square | The player bounces on walls or maze limits |
 
-This Maze is an <i>Ice Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i>Ice Mazes</i>. Unlocked by reaching Level 10.</br></br>
-The <i>Cyan Squares</i> are <i>Ice</i>. When the <i>Player</i> is on it, he skates in the same direction until the next <i>White Square</i>.</br>
-If the <i>Player</i> meets a <i>Wall</i> or a <i>Maze Limit</i> before a <i>White Square</i>, he bounces on it.</br>
+</br>
+
+This Maze is an <b>Ice Maze</b>. There are no doors and keys in ice mazes.</br>
+The player can unlock this type of maze by reaching level 10.</br>
+The <b>Cyan Squares</b> are <b>Ice</b>. When the player is on it, the player skates in the same direction until the next white square.</br>
+If the player is skating and suddenly meets a wall or a maze limit, the player bounces on it.</br>
+
+---
+
+### Arrows Maze
+
+</br>
 
 <img src="/media/images/arrowsmaze.png">
 
-This Maze is an <i>Arrows Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i>Arrows Mazes</i>. Unlocked by reaching Level 10.</br></br>
-The <i>Navy Squares with Colored Arrows inside</i> are <i>Arrows</i>. When the <i>Player</i> is on it, he is displaced in the <i>Arrow's Direction</i>.</br>
-Press the <i>Space</i> bar to reverse <i>Arrows' Directions</i>.</br>
+</br>
 
-<i>Tips:</i></br>
-Press the <i>+</i> and the <i>-</i> keys to zoom in and zoom out.</br>
-Press the <i>Enter</i> key to disable/enable smooth maze building animation. Disabling smooth animation builds big mazes faster.</br>
-Maze has always a solution. Type the password to see it.</br>
+This Maze is an <b>Arrows Maze</b>. There are no doors and keys in arrows mazes.</br>
+The player can unlock this type of maze by reaching level 10.</br>
+The <b>Navy Squares With Colored Arrows</b> are <b>Arrows</b>. When the player pass over it, the player is displaced in the arrow direction.</br>
+The player have an interuptor on him to reverse arrow directions when used.</br>
+
+---
+
+### Portals Maze
+
+</br>
+
+|<img src="/media/images/portalsmaze_year0.png"/>|<img src="/media/images/portalsmaze_year2.png"/>|<img src="/media/images/portalsmaze_year3.png"/>|
+|:------------:|:-------------:|:-----------:|
+| Year 0 | Year 2 | Year 3 |
+
+</br>
+
+This Maze is a <b>Portals Maze</b>. A portals maze is a 3D Maze where the player can not find doors and keys.</br>
+The player can unlock this type of maze by reaching level 10.
+* The <b>Red Spirals</b> are <b>Future Portals</b>. The player can access the nearest next year by using future portals.
+* The <b>Blue Spirals</b> are <b>Past Portals</b>. The player can access the nearest past year by using past portals.
+* The <b>Purple Spirals</b> are <b>Bidirectional Portals</b>. The player can access nearest next and past years by using bidirectional portals.
+
+</br>
+
+Each year 12 nodes are added to a portals maze but portals do not give access to each year of the maze.</br> 
+For example in the maze shown above, year 1 is unaccessible.</br> 
+Passing through a portal do not move the player.
+
+---
+
+### Controls</br></br>
+
+#### General
+
+<table>
+  <tr>
+    <td><b> ← </b></td>
+    <td> Moves the player to the left </td>
+  </tr>
+  <tr>
+    <td><b> → </b></td>
+    <td> Moves the player to the right </td>
+  </tr>
+  <tr>
+    <td><b> ↑ </b></td>
+    <td> Moves the player to the top </td>
+  </tr>
+  <tr>
+    <td><b> ↓ </b></td>
+    <td> Moves the player to the down </td>
+  </tr>
+  <tr>
+    <td> + </td>
+    <td> Zoom In </td>
+  </tr>
+  <tr>
+    <td> - </td>
+    <td> Zoom Out </td>
+  </tr>
+  <tr>
+    <td> Enter </td>
+    <td> Enables/Disables smooth maze building animation</br>(disabling smooth animation builds big mazes faster) </td>
+  </tr>
+</table>
+
+</br>
+
+#### Stairs Maze Specific
+
+<table>
+  <tr>
+    <td> Page Up </td>
+    <td> Moves the player to the higher floor if the player is on up or bidirectional stairs </td>
+  </tr>
+  <tr>
+    <td> Page Down </td>
+    <td> Moves the player to the lower floor if the player is on down or bidirectional stairs </td>
+  </tr>
+  <tr>
+    <td> Shift </td>
+    <td> Moves the view to the higher floor </td>
+  </tr>
+  <tr>
+    <td> Control </td>
+    <td> Moves the view to the lower floor </td>
+  </tr>
+</table>
+
+</br>
+
+#### Springs Maze Specific
+
+<table>
+  <tr>
+    <td> Space </td>
+    <td> Moves the player to the linked spring where the player is on </td>
+  </tr>
+  <tr>
+    <td> Mouse </td>
+    <td> Highlights a spring and its linked spring </td>
+  </tr>
+</table>
+
+</br>
+
+#### Arrows Maze Specific
+
+<table>
+  <tr>
+    <td> Space </td>
+    <td> Reverses arrows direction </td>
+  </tr>
+</table>
+
+</br>
+
+#### Portals Maze Specific
+
+<table>
+  <tr>
+    <td> = </td>
+    <td> Moves the player to the nearest next year if the player is on future or bidirectional portal </td>
+  </tr>
+  <tr>
+    <td> Backspace </td>
+    <td> Moves the player to the nearest past year if the player is on past or bidirectional portal </td>
+  </tr>
+  <tr>
+    <td> F </td>
+    <td> Moves the view to the nearest next year </td>
+  </tr>
+  <tr>
+    <td> P </td>
+    <td> Moves the view to the nearest past year </td>
+  </tr>
+</table>
+ 
+---
+
+### Solution
+
+Mazes has always a solution. The player can find it or type the password to see it.
+
+---
+
+### Configuration
 
 To play game, type this in your terminal when you are in the <b>./Maze</b> repository:</br>
 ```sh
