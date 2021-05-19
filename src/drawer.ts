@@ -85,6 +85,7 @@ export class Drawer
   {
     text = document.createElement('H3') as HTMLHeadingElement;
     this.drawText(maze);
+    text.style.margin = "0px";
     document.body.appendChild(text);
 
     canvas = document.createElement('canvas') as HTMLCanvasElement;

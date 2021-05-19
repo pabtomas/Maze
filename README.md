@@ -1,5 +1,5 @@
 # Maze
-<img src="/media/easymaze.png">
+<img src="/media/images/easymaze.png">
 
 This Maze is an <i>Easy Maze</i>. Finding <i>Easy Maze</i> is only possible below Level 10.</br></br>
 The <i>Red Circle</i> is the <i>Player</i>. Press the arrows' keyboard to move him.</br>
@@ -12,7 +12,7 @@ The <i>Player</i> can't pass through a <i>Locked Door</i>. The <i>Player</i> has
 <i>Tips:</i></br>
 Following the <i>Doors</i> is the best way to find the <i>Princess</i></br>
 
-|<img src="/media/stairsmaze_floor1.png"/>|<img src="/media/stairsmaze_floor2.png"/>|<img src="/media/stairsmaze_floor3.png"/>|
+|<img src="/media/images/stairsmaze_floor1.png"/>|<img src="/media/images/stairsmaze_floor2.png"/>|<img src="/media/images/stairsmaze_floor3.png"/>|
 |:------------:|:-------------:|:-----------:|
 |<b>FLOOR 1</b>|<b>FLOOR 2</b>|<b>FLOOR 3</b>|
 
@@ -24,7 +24,7 @@ The <i>Green Squares</i> are <i>Up</i> and <i>Down Stairs</i>.</br>
 <i>Tips:</i></br>
 Press the <i>Shift</i> and the <i>Control</i> keys to change the maze's floor.</br>
 
-<img src="/media/springsmaze.png">
+<img src="/media/images/springsmaze.png">
 
 This Maze is a <i>Springs Maze</i>. Reach the Level 10 to unlock them. Unlocked by reaching Level 10.</br></br>
 The <i>Orange Squares</i> are <i>Springs</i>. A <i>Spring</i> is linked to another <i>Spring</i> (and only one).</br>
@@ -34,7 +34,7 @@ When the <i>Player</i> uses a <i>Spring</i>, he is sent to its <i>Linked Spring<
 <i>Tips:</i></br>
 If the mouse is over a <i>Spring</i>, the maze will highlight the <i>Spring</i> and its <i>Linked Spring</i>.</br>
 
-|<img src="/media/icemaze1.gif"/>|<img src="/media/icemaze2.gif"/>|
+|<img src="/media/images/icemaze1.gif"/>|<img src="/media/images/icemaze2.gif"/>|
 |:------------:|:-------------:|
 |The <i>Player</i> skates until the next <i>White Square</i>|The <i>Player</i> bounces on <i>Walls</i> or <i>Maze Limits</i>|
 
@@ -42,7 +42,7 @@ This Maze is an <i>Ice Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i
 The <i>Cyan Squares</i> are <i>Ice</i>. When the <i>Player</i> is on it, he skates in the same direction until the next <i>White Square</i>.</br>
 If the <i>Player</i> meets a <i>Wall</i> or a <i>Maze Limit</i> before a <i>White Square</i>, he bounces on it.</br>
 
-<img src="/media/arrowsmaze.png">
+<img src="/media/images/arrowsmaze.png">
 
 This Maze is an <i>Arrows Maze</i>. There aren't <i>Doors</i> and <i>Keys</i> in <i>Arrows Mazes</i>. Unlocked by reaching Level 10.</br></br>
 The <i>Navy Squares with Colored Arrows inside</i> are <i>Arrows</i>. When the <i>Player</i> is on it, he is displaced in the <i>Arrow's Direction</i>.</br>
