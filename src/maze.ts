@@ -43,8 +43,8 @@ export class Maze
   constructor()
   {
     this.level = 1;
-    this.width = 16;
-    this.height = 8;
+    this.width = 6;
+    this.height = 3;
     this.floor = 1;
 
     this.floorStep = 10;
