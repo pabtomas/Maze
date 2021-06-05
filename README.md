@@ -95,7 +95,7 @@ The player have an interuptor on him to reverse arrow directions when used.</br>
 
 </br>
 
-|<img src="/media/images/portalsmaze_year0.png"/>|<img src="/media/images/portalsmaze_year2.png"/>|<img src="/media/images/portalsmaze_year3.png"/>|
+|<img src="/media/images/portalsmaze_year0.png"/>|<img src="/media/images/portalsmaze_year1.png"/>|<img src="/media/images/portalsmaze_year3.png"/>|
 |:------------:|:-------------:|:-----------:|
 | Year 0 | Year 1 | Year 3 |
 
