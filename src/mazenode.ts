@@ -13,7 +13,6 @@ export class MazeNode
   public root: Array<MazeNode>;
 
   public weight: number;
-  public isDeadEnd: boolean;
 
   constructor(x: number, y: number, z: number)
   {
@@ -27,7 +26,6 @@ export class MazeNode
     this.root = [];
 
     this.weight = -1;
-    this.isDeadEnd = false;
   }
 
   isEqual(node: MazeNode): boolean
@@ -52,18 +50,18 @@ export class MazeNode
     let intersections: Array<MazeNode> = [];
 
     // filter dead ends and neighbours without current node as neighbour
-    this.getNeighbourhood().filter(n => !n.isDeadEnd &&
+    this.getNeighbourhood().filter(n =>
       n.getNeighbourhood().some(m => m.isEqual(this))).forEach(neighbour => {
         if (neighbour.weight === -1)
         {
           lastNode = this;
           neighbour.weight = this.weight + 1;
-          while (neighbour.getNeighbourhood().filter(n => !n.isDeadEnd &&
+          while (neighbour.getNeighbourhood().filter(n =>
             n.getNeighbourhood().some(m => m.isEqual(neighbour))).length === 2)
           {
             lastNode = neighbour;
             neighbour = ensure(neighbour.getNeighbourhood()
-              .filter(n => !n.isDeadEnd && n.getNeighbourhood()
+              .filter(n => n.getNeighbourhood()
                 .some(m => m.isEqual(neighbour))).find(n => n.weight === -1));
             neighbour.weight = lastNode.weight + 1;
           }

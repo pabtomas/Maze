@@ -17,8 +17,6 @@ export class ArrowsBuilder extends FloorSaver implements Builder
 
   init(maze: Maze): void
   {
-    this.visited = [];
-
     maze.setFloor(1);
 
     maze.clear();
@@ -110,21 +108,6 @@ export class ArrowsBuilder extends FloorSaver implements Builder
     } else {
       if (!maze.isBuilt())
       {
-        let undiscoveredNeighbours: Array<MazeNode>;
-
-        // give parents for arrows with several parents
-        for (let i: number = 0; i < maze.getNodes().length; ++i)
-        {
-          undiscoveredNeighbours = maze.getNode(i).possible2DNeighbourhood()
-            .filter(n => !maze.getNode(i).getNeighbourhood().some(
-              neighbour => neighbour.isEqual(n)) && maze.isArrow(n));
-          for (let arrow of undiscoveredNeighbours)
-          {
-            arrow = ensure(maze.getArrows().find(a => a.isEqual(arrow)));
-            maze.getNode(i).children.push(arrow);
-          }
-        }
-
         // princess and player are placed at the extremities of the diameter
         // of the maze
         maze.setPrincess(maze.searchFarthestNode(maze.getPlayer()));
@@ -135,25 +118,12 @@ export class ArrowsBuilder extends FloorSaver implements Builder
   }
 
   // road1 and road2 are concurrent if some nodes are common (except the
-  // first of the 2 roads) or if neighbours of last node of the road1
-  // are in road2 or if neighbours of last node of road2 are in road1
+  // first of the 2 roads)
   isConcurrentRoad(maze: Maze, road1: Array<MazeNode>,
     road2: Array<MazeNode>): boolean
   {
     return road1.some((r1, indexr1) => road2.some((r2, indexr2) =>
-      r2.isEqual(r1) && !((indexr1 === 0) && (indexr2 === 0)))) ||
-      road1[road1.length - 1].possible2DNeighbourhood()
-        .filter(neighbour =>
-          (neighbour.x > -1) && (neighbour.x < maze.getWidth()) &&
-          (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-          !road1.some(r => neighbour.isEqual(r)))
-        .some(neighbour => road2.some(node => node.isEqual(neighbour))) ||
-      road2[road2.length - 1].possible2DNeighbourhood()
-        .filter(neighbour =>
-          (neighbour.x > -1) && (neighbour.x < maze.getWidth()) &&
-          (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-          !road2.some(r => neighbour.isEqual(r)))
-        .some(neighbour => road1.some(node => node.isEqual(neighbour)));
+      r2.isEqual(r1) && !((indexr1 === 0) && (indexr2 === 0))));
   }
 
   computeRoads(maze: Maze, node: MazeNode): Array<Array<MazeNode>>
@@ -183,52 +153,6 @@ export class ArrowsBuilder extends FloorSaver implements Builder
     } while (currentGenRoads.every(road => road.length < this.maxDist) &&
       (currentGenRoads.length > 0))
 
-    let arrows: Array<MazeNode> = [];
-
-    return roads.filter(road => {
-      currentNode = road[road.length - 1];
-      arrows = road.slice(1, road.length - 1);
-
-      // neighbour of last node can be an arrow of the current road but not
-      // the first node (except if the road length is 2)
-      if (arrows.length === 0)
-      {
-        neighbourhood = currentNode.possible2DNeighbourhood().filter(
-          neighbour => (neighbour.x > -1) && (neighbour.x < maze.getWidth())
-            && (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-            !neighbour.isEqual(road[0]));
-      } else {
-        neighbourhood = currentNode.possible2DNeighbourhood().filter(
-          neighbour => (neighbour.x > -1) && (neighbour.x < maze.getWidth())
-            && (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-            !arrows.some(a => neighbour.isEqual(a)));
-      }
-
-      // if neighbours of last node of the road are not already in the maze,
-      // keep the road
-      if (neighbourhood.every(neighbour => !maze.isNode(neighbour) &&
-        !maze.isArrow(neighbour)))
-      {
-        for (let arrow of arrows)
-        {
-          // neighbour of an arrow can be another arrow or a node of current
-          // road but not a node of another road
-          neighbourhood = arrow.possible2DNeighbourhood().filter(
-            neighbour => (neighbour.x > -1) && (neighbour.x < maze.getWidth())
-              && (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-              !road.some(r => neighbour.isEqual(r)));
-
-          // if each neighbour's arrows of the road are not nodes already in
-          // the maze, keep the road
-          if (neighbourhood.some(neighbour => maze.isNode(neighbour)))
-          {
-            return false;
-          }
-        }
-        return true;
-      } else {
-        return false;
-      }
-    });
+    return roads;
   }
 }

@@ -6,12 +6,10 @@ const NEW_FLOOR_REACHED: boolean = true;
 export class FloorSaver
 {
   protected floorBackup: number;
-  protected visited: Array<MazeNode>;
 
   constructor()
   {
     this.floorBackup = 1;
-    this.visited = [];
   }
 
   upgrade(maze: Maze): void

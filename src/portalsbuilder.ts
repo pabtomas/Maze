@@ -25,7 +25,6 @@ export class PortalsBuilder extends FloorSaver implements Builder
 
   init(maze: Maze): void
   {
-    this.visited = [];
     this.walls = [];
     this.portals = [];
     this.newNodes = [];
@@ -44,8 +43,6 @@ export class PortalsBuilder extends FloorSaver implements Builder
     let neighbours = this.computeNeighbours(maze, startingNode);
     maze.addNode(startingNode);
     this.walls = this.walls.concat(neighbours);
-    this.visited.push(startingNode);
-    this.visited = this.visited.concat(neighbours);
   }
 
   update(maze: Maze): void
@@ -58,14 +55,12 @@ export class PortalsBuilder extends FloorSaver implements Builder
 
       // if a node is not already in the maze and if it has 1 neighbour, it
       // is added to the maze.
-      if (!maze.isNode(currentNode) &&
-        (this.neighboursInMaze(maze, currentNode) === 1))
+      if (!maze.isNode(currentNode))
       {
         this.determineNeighbours(maze, currentNode);
         let neighbours = this.computeNeighbours(maze, currentNode);
         maze.addNode(currentNode);
         this.walls = this.walls.concat(neighbours);
-        this.visited = this.visited.concat(neighbours);
       }
       this.walls.splice(nodeIndex, 1);
     } else {
@@ -217,28 +212,21 @@ export class PortalsBuilder extends FloorSaver implements Builder
     }
   }
 
-  neighboursInMaze(maze: Maze, node: MazeNode): number
-  {
-    return node.possible2DNeighbourhood().filter(
-      neighbour => maze.isNode(neighbour)).length;
-  }
-
   computeNeighbours(maze: Maze, node: MazeNode): Array<MazeNode>
   {
-    let visited = this.visited;
     let neighbours: Array<MazeNode> = node.possible2DNeighbourhood().filter(
       neighbour => (neighbour.x > -1) && (neighbour.x < maze.getWidth()) &&
         (neighbour.y > -1) && (neighbour.y < maze.getHeight()) &&
-        !maze.isNode(neighbour) && !visited.some(v => v.isEqual(neighbour)));
+        !maze.isNode(neighbour));
     return neighbours;
   }
 
   determineNeighbours(maze: Maze, node: MazeNode): void
   {
     let neighbours: Array<MazeNode> = node.possible3DNeighbourhood();
-    let parents: MazeNode = ensure(maze.getNodes().find(
-      element => neighbours.some(neighbour => element.isEqual(neighbour))));
-    node.parents = parents;
+    let potentialParents: Array<MazeNode> = maze.getNodes().filter(
+      element => neighbours.some(neighbour => element.isEqual(neighbour)));
+    node.parents = potentialParents[getRandomInt(potentialParents.length)];
     node.root = node.parents.root.concat([node]);
     node.parents.children.push(node);
 

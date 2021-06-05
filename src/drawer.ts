@@ -13,7 +13,7 @@ const KEY_COLOR: string = 'gold';
 const SPRING_COLOR: string = 'orange';
 const LINKEDSPRING_COLOR: string = 'crimson';
 const ICE_COLOR: string = 'rgb(128, 244, 255)';
-const ARROW_COLOR: string = 'navy';
+const ARROW_COLOR: string = 'dimgrey';
 const LEFTARROW_COLOR: string = 'red';
 const RIGHTARROW_COLOR: string = 'dodgerblue';
 const TOPARROW_COLOR: string = 'gold';
@@ -118,6 +118,67 @@ export class Drawer
     }
   }
 
+  drawWalls(maze: Maze): void
+  {
+    let nodeSize: number = this.nodeSize;
+    let viewer: number = maze.getViewer();
+    let year: number = maze.getYear();
+
+    context.strokeStyle = "black";
+    context.lineWidth = nodeSize / 10;
+    context.beginPath();
+    context.moveTo(0, 0);
+    context.lineTo(canvas.width, 0);
+    context.lineTo(canvas.width, canvas.height);
+    context.lineTo(0, canvas.height);
+    context.closePath();
+    context.stroke();
+
+    maze.getNodes().forEach(node => {
+      if ((node.z === viewer) && (node.t === year))
+      {
+        let neighbourhood: Array<MazeNode> = node.getNeighbourhood();
+        node.possible2DNeighbourhood().filter(
+          neighbour => !neighbourhood.some(n => n.isEqual(neighbour)))
+            .forEach(wall => {
+              if (wall.isEqual(new MazeNode(node.x + 1, node.y, node.z)))
+              {
+                context.beginPath();
+                context.moveTo((node.x + 1) * nodeSize,
+                  node.y * nodeSize - nodeSize / 20);
+                context.lineTo((node.x + 1) * nodeSize,
+                  (node.y + 1) * nodeSize + nodeSize / 20);
+                context.stroke();
+              } else if (wall.isEqual(
+                new MazeNode(node.x - 1, node.y, node.z))) {
+                  context.beginPath();
+                  context.moveTo(node.x * nodeSize,
+                    node.y * nodeSize - nodeSize / 20);
+                  context.lineTo(node.x * nodeSize,
+                    (node.y + 1) * nodeSize + nodeSize / 20);
+                  context.stroke();
+              } else if (wall.isEqual(
+                new MazeNode(node.x, node.y + 1, node.z))) {
+                  context.beginPath();
+                  context.moveTo(node.x * nodeSize - nodeSize / 20,
+                    (node.y + 1) * nodeSize);
+                  context.lineTo((node.x + 1) * nodeSize + nodeSize / 20,
+                    (node.y + 1) * nodeSize);
+                  context.stroke();
+              } else if (wall.isEqual(
+                new MazeNode(node.x, node.y - 1, node.z))) {
+                  context.beginPath();
+                  context.moveTo(node.x * nodeSize - nodeSize / 20,
+                    node.y * nodeSize);
+                  context.lineTo((node.x + 1) * nodeSize + nodeSize / 20,
+                    node.y * nodeSize);
+                  context.stroke();
+              }
+        })
+      }
+    });
+  }
+
   drawMaze(maze: Maze): void
   {
     let nodeSize: number = this.nodeSize;
@@ -191,17 +252,17 @@ export class Drawer
             spiralStart = 60;
             spiralEnd = 120;
             a = 0.19;
-            b = nodeSize / 20;
+            b = nodeSize / 25;
           } else if (past) {
             context.strokeStyle = PASTPORTAL_COLOR;
             spiralStart = -133;
             spiralEnd = 0;
-            a = 0.75 * (nodeSize / 20);
+            a = 0.75 * (nodeSize / 25);
           } else if (future) {
             context.strokeStyle = FUTUREPORTAL_COLOR;
             spiralStart = 0;
             spiralEnd = 117;
-            a = 0.75 * (nodeSize / 20);
+            a = 0.75 * (nodeSize / 25);
           }
         }
 
@@ -243,7 +304,7 @@ export class Drawer
           context.stroke();
 
           context.beginPath();
-          context.arc(centerX, centerY, nodeSize / 6, 0, 2 * Math.PI, false);
+          context.arc(centerX, centerY, nodeSize / 8, 0, 2 * Math.PI, false);
           context.stroke();
 
         } else if (future || past) {
@@ -272,7 +333,7 @@ export class Drawer
     let viewer: number = maze.getViewer();
     let year: number = maze.getYear();
     maze.getIce().forEach(node => {
-      if ((node.z === viewer) && (node.t === year) && !node.isDeadEnd)
+      if ((node.z === viewer) && (node.t === year))
       {
         context.fillStyle = ICE_COLOR;
         context.fillRect(node.x * nodeSize, node.y * nodeSize,
@@ -380,6 +441,7 @@ export class Drawer
   drawPrincess(maze: Maze): void
   {
     let princess: MazeNode = maze.getPrincess();
+    let nodeSize: number = this.nodeSize;
     let viewer: number = maze.getViewer();
     let year: number = maze.getYear();
     if (maze.isBuilt() && (princess.z === viewer) && (princess.t === year))
@@ -400,8 +462,8 @@ export class Drawer
       } else {
         context.fillStyle = PRINCESS_COLOR;
       }
-      context.fillRect(princess.x * this.nodeSize,
-        princess.y * this.nodeSize, this.nodeSize, this.nodeSize);
+      context.fillRect(princess.x * nodeSize,
+        princess.y * nodeSize, nodeSize, nodeSize);
     }
   }
 
@@ -411,8 +473,24 @@ export class Drawer
     {
       let linkedSpring: MazeNode = maze.getLinkedSpring(maze.getPlayer());
 
+      let elapsedTime: number = Date.now() - maze.getTimeLastPlayerMove();
+      if (elapsedTime > 1000)
+      {
+        while (elapsedTime > 1000)
+        {
+          elapsedTime -= 1000;
+        }
+        if (elapsedTime < 500)
+        {
+          context.strokeStyle = TRANSPARENT;
+        } else {
+          context.strokeStyle = LINKEDSPRING_COLOR;
+        }
+      } else {
+        context.strokeStyle = LINKEDSPRING_COLOR;
+      }
+
       context.lineWidth = this.nodeSize / 5;
-      context.strokeStyle = LINKEDSPRING_COLOR;
       context.strokeRect(linkedSpring.x * this.nodeSize + this.nodeSize / 10,
         linkedSpring.y * this.nodeSize + this.nodeSize / 10,
         this.nodeSize - this.nodeSize / 5, this.nodeSize - this.nodeSize / 5);
@@ -616,7 +694,7 @@ export class Drawer
         '1' : '0');
   }
 
-  drawSpringUnderMouse(maze: Maze): void
+  drawSpringsUnderMouse(maze: Maze): void
   {
     if (!eventOccured)
     {
@@ -657,11 +735,12 @@ export class Drawer
     this.drawArrows(maze);
     this.drawPrincess(maze);
     this.drawLinkedSpring(maze);
-    this.drawSpringUnderMouse(maze);
+    this.drawSpringsUnderMouse(maze);
     this.drawSolution(maze);
     this.drawDoors(maze);
     this.drawKey(maze);
     this.drawPlayer(maze);
+    this.drawWalls(maze);
     this.drawText(maze);
   }
 }
