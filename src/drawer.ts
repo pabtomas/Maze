@@ -21,6 +21,7 @@ const DOWNARROW_COLOR: string = 'limegreen';
 const PASTPORTAL_COLOR: string = 'dodgerblue';
 const FUTUREPORTAL_COLOR: string = 'rgb(255, 53, 94)';
 const PORTAL_COLOR: string = 'blueviolet';
+const QUEENS_COLOR: string = 'chocolate';
 const TRANSPARENT: string = 'rgba(0, 0, 0, 0)';
 
 let canvas: HTMLCanvasElement;
@@ -202,6 +203,7 @@ export class Drawer
       {
         let future: boolean = false;
         let past: boolean = false;
+        let diags: Array<boolean> = [ false, false, false, false ];
 
         if (maze.isSpring(node))
         {
@@ -233,6 +235,30 @@ export class Drawer
             neighbour.isEqual(new MazeNode(node.x, node.y, node.z))))
           {
             past = true;
+          }
+
+          if (neighbourhood.some(neighbour =>
+            neighbour.isEqual(new MazeNode(node.x - 1, node.y - 1, node.z))))
+          {
+            diags[0] = true;
+          }
+
+          if (neighbourhood.some(neighbour =>
+            neighbour.isEqual(new MazeNode(node.x - 1, node.y + 1, node.z))))
+          {
+            diags[1] = true;
+          }
+
+          if (neighbourhood.some(neighbour =>
+            neighbour.isEqual(new MazeNode(node.x + 1, node.y - 1, node.z))))
+          {
+            diags[2] = true;
+          }
+
+          if (neighbourhood.some(neighbour =>
+            neighbour.isEqual(new MazeNode(node.x + 1, node.y + 1, node.z))))
+          {
+            diags[3] = true;
           }
 
           if (down && up)
@@ -322,6 +348,52 @@ export class Drawer
             context.lineTo(x, y);
           }
           context.stroke();
+        }
+
+        context.fillStyle = QUEENS_COLOR;
+
+        if (diags[0])
+        {
+          context.beginPath();
+          context.moveTo(node.x * nodeSize, node.y * nodeSize);
+          context.lineTo(node.x * nodeSize + nodeSize / 2, node.y * nodeSize);
+          context.lineTo(node.x * nodeSize, node.y * nodeSize + nodeSize / 2);
+          context.closePath();
+          context.fill();
+        }
+
+        if (diags[1])
+        {
+          context.beginPath();
+          context.moveTo(node.x * nodeSize, (node.y + 1) * nodeSize);
+          context.lineTo(node.x * nodeSize + nodeSize / 2,
+            (node.y + 1) * nodeSize);
+          context.lineTo(node.x * nodeSize, node.y * nodeSize + nodeSize / 2);
+          context.closePath();
+          context.fill();
+        }
+
+        if (diags[2])
+        {
+          context.beginPath();
+          context.moveTo((node.x + 1) * nodeSize, node.y * nodeSize);
+          context.lineTo(node.x * nodeSize + nodeSize / 2, node.y * nodeSize);
+          context.lineTo((node.x + 1) * nodeSize,
+            node.y * nodeSize + nodeSize / 2);
+          context.closePath();
+          context.fill();
+        }
+
+        if (diags[3])
+        {
+          context.beginPath();
+          context.moveTo((node.x + 1) * nodeSize, (node.y + 1) * nodeSize);
+          context.lineTo(node.x * nodeSize + nodeSize / 2,
+            (node.y + 1) * nodeSize);
+          context.lineTo((node.x + 1) * nodeSize,
+            node.y * nodeSize + nodeSize / 2);
+          context.closePath();
+          context.fill();
         }
       }
     });

@@ -89,6 +89,16 @@ export class MazeNode
     ]);
   }
 
+  possibleDiagNeighbourhood(): Array<MazeNode>
+  {
+    return this.possible2DNeighbourhood().concat([
+      new MazeNode(this.x - 1, this.y - 1, this.z),
+      new MazeNode(this.x - 1, this.y + 1, this.z),
+      new MazeNode(this.x + 1, this.y - 1, this.z),
+      new MazeNode(this.x + 1, this.y + 1, this.z),
+    ]);
+  }
+
   sameX(maze: Maze): Array<MazeNode>
   {
     let x = this.x;

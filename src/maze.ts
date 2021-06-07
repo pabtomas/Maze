@@ -423,7 +423,8 @@ export class Maze
     {
       return this.years[this.year];
     } else {
-      return this.year;
+      return Math.ceil((this.nodes.length + this.ice.length +
+        this.arrows.length) / NODESPERYEAR) - 1;
     }
   }
 

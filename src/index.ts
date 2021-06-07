@@ -6,6 +6,7 @@ import { SpringsBuilder } from './springsbuilder';
 import { IceBuilder } from './icebuilder';
 import { ArrowsBuilder } from './arrowsbuilder';
 import { PortalsBuilder } from './portalsbuilder';
+import { QueensBuilder } from './queensbuilder';
 import { Drawer } from './drawer';
 
 let animationLaunched: boolean = false;
@@ -16,12 +17,13 @@ const MIN_FRAME_TIME: number = 1000;
 let maze: Maze = new Maze();
 let currentBuilder = Level.STAIRS;
 let builders: Array<StairsBuilder | SpringsBuilder | IceBuilder |
-  ArrowsBuilder | PortalsBuilder> = [
+  ArrowsBuilder | PortalsBuilder | QueensBuilder > = [
     new StairsBuilder(),
     new SpringsBuilder(),
     new IceBuilder(),
     new ArrowsBuilder(),
-    new PortalsBuilder()
+    new PortalsBuilder(),
+    new QueensBuilder()
 ];
 let drawer: Drawer = new Drawer(maze);
 
@@ -269,6 +271,62 @@ window.addEventListener('keydown', function(event) {
         }
       } else if (currentBuilder === Level.ARROWS) {
         maze.useInteruptor();
+      }
+      break;
+    case '1':
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x - 1, player.y + 1, player.z)));
+
+      if (neighbour)
+      {
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow()
+          && !maze.isSpring(neighbour))
+        {
+          maze.movePlayer(neighbour);
+        }
+      }
+      break;
+    case '3':
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x + 1, player.y + 1, player.z)));
+
+      if (neighbour)
+      {
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow()
+          && !maze.isSpring(neighbour))
+        {
+          maze.movePlayer(neighbour);
+        }
+      }
+      break;
+    case '7':
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x - 1, player.y - 1, player.z)));
+
+      if (neighbour)
+      {
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow()
+          && !maze.isSpring(neighbour))
+        {
+          maze.movePlayer(neighbour);
+        }
+      }
+      break;
+    case '9':
+      neighbour = player.getNeighbourhood().find(node => (node.t === player.t)
+        && node.isEqual(new MazeNode(player.x + 1, player.y - 1, player.z)));
+
+      if (neighbour)
+      {
+        if ((!maze.isDoor(neighbour) || maze.canPlayerUnlockDoors()) &&
+          maze.isBuilt() && !maze.isPlayerOnIce() && !maze.isPlayerOnArrow()
+          && !maze.isSpring(neighbour))
+        {
+          maze.movePlayer(neighbour);
+        }
       }
       break;
     case 'Shift':
