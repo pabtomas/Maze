@@ -11,8 +11,8 @@
 This Maze is an <b>Easy Maze</b>. Finding easy mazes is only possible below level 10.
 * The <b>Red Circle</b> is the <b>Player</b>.
 * The <b>Pink Square</b> is the <b>Princess</b>. The player has to rescue the princess to finish the maze.
-* The <b>Black Areas</b> are <b>Walls</b>. The player can not pass through a wall.
-* The <b>Black Locks</b> are <b>Locked Doors</b>. The player can not pass through a locked door.
+* The <b>Black Sticks</b> are <b>Walls</b>. The player can not pass through a wall.
+* The <b>Black Lock</b> is a <b>Locked Door</b>. The player can not pass through a locked door.
 * The <b>Yellow Rhombus</b> is a <b>Key</b>. The player has to reach one key to unlock one door.</br>A new key is generated when the player unlocks a door.
 
 </br>
@@ -63,16 +63,15 @@ When the player uses a spring, the player is sent to its linked spring.
 
 </br>
 
-|<img src="/media/images/icemaze_skating.gif"/>|<img src="/media/images/icemaze_bouncing.gif"/>|
-|:------------:|:-------------:|
-| The player skates until the next white Square | The player bounces on walls or maze limits |
+|<img src="/media/images/icemaze_skating.gif"/>|
+|:------------:|
+| The player skates until the next white Square |
 
 </br>
 
 This Maze is an <b>Ice Maze</b>. There are no doors and keys in ice mazes.</br>
 The player can unlock this type of maze by reaching level 10.</br>
 The <b>Cyan Squares</b> are <b>Ice</b>. When the player is on it, the player skates in the same direction until the next white square.</br>
-If the player is skating and suddenly meets a wall or a maze limit, the player bounces on it.</br>
 
 ---
 
@@ -80,14 +79,16 @@ If the player is skating and suddenly meets a wall or a maze limit, the player b
 
 </br>
 
-<img src="/media/images/arrowsmaze.png">
+|<img src="/media/images/arrowsmaze.png">|<img src="/media/images/arrowsmaze_reversed.png">|
+|:------------:|:------------:|
+| Before the player used interuptor | After the player used interuptor |
 
 </br>
 
 This Maze is an <b>Arrows Maze</b>. There are no doors and keys in arrows mazes.</br>
 The player can unlock this type of maze by reaching level 10.</br>
-The <b>Navy Squares With Colored Arrows</b> are <b>Arrows</b>. When the player pass over it, the player is displaced in the arrow direction.</br>
-The player have an interuptor on him to reverse arrow directions when used.</br>
+The <b>Grey Squares With Colored Arrows</b> are <b>Arrows</b>. When the player passes over it, the player is displaced in the arrow direction.</br>
+The player has an interuptor to reverse arrow directions when used (with an unlimited usage).</br>
 
 ---
 
@@ -95,9 +96,9 @@ The player have an interuptor on him to reverse arrow directions when used.</br>
 
 </br>
 
-|<img src="/media/images/portalsmaze_year0.png"/>|<img src="/media/images/portalsmaze_year1.png"/>|<img src="/media/images/portalsmaze_year3.png"/>|
+|<img src="/media/images/portalsmaze_year0.png"/>|<img src="/media/images/portalsmaze_year2.png"/>|<img src="/media/images/portalsmaze_year5.png"/>|
 |:------------:|:-------------:|:-----------:|
-| Year 0 | Year 1 | Year 3 |
+| Year 0 | Year 2 | Year 5 |
 
 </br>
 
@@ -109,9 +110,24 @@ The player can unlock this type of maze by reaching level 10.
 
 </br>
 
-Each year 12 nodes are added to a portals maze but portals do not give access to each year of the maze.</br> 
-For example in the maze shown above, year 2 is unaccessible.</br> 
-Passing through a portal do not move the player.
+Each year 12 nodes are added to a maze but portals do not give access to each year of the maze.</br> 
+For example in the maze shown above, years 1, 3 and 4 are unaccessible.</br> 
+Passing through a portal does not move the player.
+
+---
+
+### Queens Maze
+
+</br>
+
+<img src="/media/images/queensmaze.png">
+
+</br>
+
+This Maze is a <b>Queens Maze</b>. There are doors and keys in queens mazes.</br>
+The player can unlock this type of maze by reaching level 10.</br>
+The <b>White Squares with Brown Corners</b> are <b>Queens</b>.</br>
+When the player is over a queen, the player can be displaced on the nearest node in the direction of the brown corner.
 
 ---
 
@@ -221,12 +237,35 @@ Passing through a portal do not move the player.
     <td> Moves the view to the nearest past year </td>
   </tr>
 </table>
- 
+
+</br>
+
+#### Queens Maze Specific
+
+<table>
+  <tr>
+    <td> 1 </td>
+    <td> Moves the player to the bottom-left if the movement is allowed by the queen </td>
+  </tr>
+  <tr>
+    <td> 3 </td>
+    <td> Moves the player to the bottom-right if the movement is allowed by the queen </td>
+  </tr>
+  <tr>
+    <td> 7 </td>
+    <td> Moves the player to the top-left if the movement is allowed by the queen </td>
+  </tr>
+  <tr>
+    <td> 9 </td>
+    <td> Moves the player to the top-right if the movement is allowed by the queen </td>
+  </tr>
+</table>
+
 ---
 
 ### Solution
 
-Mazes has always a solution. The player can find it or type the password to see it.
+Mazes has always a solution (and only one). The player can find it or type the password to see it.
 
 ---
 
